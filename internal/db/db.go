@@ -59,6 +59,11 @@ func (d *DB) migrate() error {
 			updated_at TEXT NOT NULL
 		);
 		CREATE INDEX IF NOT EXISTS idx_events_date ON events(date);
+
+		CREATE TABLE IF NOT EXISTS day_backgrounds (
+			date TEXT PRIMARY KEY,
+			color TEXT NOT NULL
+		);
 	`)
 	if err != nil {
 		return fmt.Errorf("数据库迁移失败: %w", err)
@@ -162,4 +167,141 @@ func (d *DB) UpdateEvent(event *model.Event) error {
 func (d *DB) DeleteEvent(id string) error {
 	_, err := d.conn.Exec(`DELETE FROM events WHERE id=?`, id)
 	return err
+}
+
+func (d *DB) SetDayBackground(date, color string) error {
+	if color == "" {
+		_, err := d.conn.Exec(`DELETE FROM day_backgrounds WHERE date=?`, date)
+		return err
+	}
+	_, err := d.conn.Exec(
+		`INSERT INTO day_backgrounds (date, color) VALUES (?, ?)
+		 ON CONFLICT(date) DO UPDATE SET color=excluded.color`, date, color)
+	return err
+}
+
+func (d *DB) GetDayBackgroundsByMonth(year, month int) (map[string]string, error) {
+	start := fmt.Sprintf("%04d-%02d-01", year, month)
+	next := time.Date(year, time.Month(month)+1, 1, 0, 0, 0, 0, time.Local)
+	end := next.AddDate(0, 0, -1).Format("2006-01-02")
+	rows, err := d.conn.Query(
+		`SELECT date, color FROM day_backgrounds WHERE date >= ? AND date <= ?`, start, end)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	result := make(map[string]string)
+	for rows.Next() {
+		var date, color string
+		if err := rows.Scan(&date, &color); err != nil {
+			return nil, err
+		}
+		result[date] = color
+	}
+	return result, rows.Err()
+}
+
+func (d *DB) GetAllEvents() ([]*model.Event, error) {
+	rows, err := d.conn.Query(
+		`SELECT id, title, description, date, start_time, end_time, color, completed, created_at, updated_at
+		 FROM events ORDER BY date, start_time`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var events []*model.Event
+	for rows.Next() {
+		e := &model.Event{}
+		var completed int
+		if err := rows.Scan(&e.ID, &e.Title, &e.Description, &e.Date,
+			&e.StartTime, &e.EndTime, &e.Color, &completed, &e.CreatedAt, &e.UpdatedAt); err != nil {
+			return nil, err
+		}
+		e.Completed = completed == 1
+		events = append(events, e)
+	}
+	if events == nil {
+		events = []*model.Event{}
+	}
+	return events, rows.Err()
+}
+
+func (d *DB) GetAllBackgrounds() (map[string]string, error) {
+	rows, err := d.conn.Query(`SELECT date, color FROM day_backgrounds`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	result := make(map[string]string)
+	for rows.Next() {
+		var date, color string
+		if err := rows.Scan(&date, &color); err != nil {
+			return nil, err
+		}
+		result[date] = color
+	}
+	return result, rows.Err()
+}
+
+func (d *DB) ImportEvents(events []*model.Event) error {
+	tx, err := d.conn.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	_, err = tx.Exec(`DELETE FROM events`)
+	if err != nil {
+		return err
+	}
+
+	stmt, err := tx.Prepare(
+		`INSERT INTO events (id, title, description, date, start_time, end_time, color, completed, created_at, updated_at)
+		 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`)
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+
+	for _, e := range events {
+		completed := 0
+		if e.Completed {
+			completed = 1
+		}
+		_, err := stmt.Exec(e.ID, e.Title, e.Description, e.Date,
+			e.StartTime, e.EndTime, e.Color, completed, e.CreatedAt, e.UpdatedAt)
+		if err != nil {
+			return err
+		}
+	}
+	return tx.Commit()
+}
+
+func (d *DB) ImportBackgrounds(backgrounds map[string]string) error {
+	tx, err := d.conn.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	_, err = tx.Exec(`DELETE FROM day_backgrounds`)
+	if err != nil {
+		return err
+	}
+
+	stmt, err := tx.Prepare(`INSERT INTO day_backgrounds (date, color) VALUES (?, ?)`)
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+
+	for date, color := range backgrounds {
+		if _, err := stmt.Exec(date, color); err != nil {
+			return err
+		}
+	}
+	return tx.Commit()
 }

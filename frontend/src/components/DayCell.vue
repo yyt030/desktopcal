@@ -6,6 +6,7 @@
       selected,
       'other-month': !day.isCurrent,
     }"
+    :style="day.bgColor ? { background: day.bgColor + '18', borderColor: day.bgColor + '40' } : {}"
     @click="$emit('select', day.solarDate)"
     @dblclick="$emit('quickAdd', day.solarDate)"
   >

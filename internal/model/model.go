@@ -36,4 +36,5 @@ type DayInfo struct {
 	Events    []*Event  `json:"events"`
 	IsToday   bool      `json:"isToday"`
 	IsCurrent bool      `json:"isCurrentMonth"`
+	BgColor   string    `json:"bgColor"`
 }

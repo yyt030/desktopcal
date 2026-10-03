@@ -1,7 +1,7 @@
 <template>
   <Teleport to="body">
     <Transition name="popup">
-      <div v-if="visible" class="popup-overlay" @click.self="emit('close')">
+      <div v-if="visible" class="popup-overlay" @click.self="handleClose">
         <div class="popup">
           <div class="popup-header">
             <div class="popup-header-left">
@@ -16,6 +16,27 @@
               <div v-if="solarTerm" class="popup-solar-term">
                 {{ solarTerm }}
               </div>
+              <div class="popup-bg-colors">
+                <span class="bg-label">背景</span>
+                <button
+                  class="bg-color-btn none"
+                  :class="{ active: !currentBgColor }"
+                  @click="emit('setBgColor', '')"
+                  title="默认"
+                >
+                  <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor">
+                    <path d="M2 2l6 6M8 2l-6 6" stroke="currentColor" stroke-width="1.5" fill="none"/>
+                  </svg>
+                </button>
+                <button
+                  v-for="c in bgColors"
+                  :key="c"
+                  class="bg-color-btn"
+                  :class="{ active: currentBgColor === c }"
+                  :style="{ background: c }"
+                  @click="emit('setBgColor', c)"
+                />
+              </div>
             </div>
             <div class="popup-header-right">
               <button class="btn-add" @click="showForm = true" title="添加事件">
@@ -23,7 +44,7 @@
                   <path d="M7 1a.75.75 0 0 1 .75.75v4.5h4.5a.75.75 0 0 1 0 1.5h-4.5v4.5a.75.75 0 0 1-1.5 0v-4.5h-4.5a.75.75 0 0 1 0-1.5h4.5v-4.5A.75.75 0 0 1 7 1z"/>
                 </svg>
               </button>
-              <button class="btn-close" @click="emit('close')" title="关闭">
+              <button class="btn-close" @click="handleClose" title="关闭">
                 <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor">
                   <path d="M3.7 3.7a.5.5 0 0 1 .7 0L7 6.3l2.6-2.6a.5.5 0 0 1 .7.7L7.7 7l2.6 2.6a.5.5 0 0 1-.7.7L7 7.7l-2.6 2.6a.5.5 0 0 1-.7-.7L6.3 7 3.7 4.4a.5.5 0 0 1 0-.7z"/>
                 </svg>
@@ -33,33 +54,14 @@
 
           <div class="popup-body">
             <div v-if="showForm" class="event-form">
-              <input
-                v-model="form.title"
-                class="form-input"
-                placeholder="事件标题"
-                @keyup.enter="submitForm"
-              />
-              <div class="form-row">
-                <input v-model="form.startTime" type="time" class="form-input form-time" />
-                <span class="form-sep">至</span>
-                <input v-model="form.endTime" type="time" class="form-input form-time" />
-              </div>
               <textarea
-                v-model="form.description"
-                class="form-input form-desc"
-                placeholder="描述（可选）"
-                rows="2"
+                v-model="formText"
+                class="form-input form-text"
+                placeholder="输入事件内容，按 Ctrl+Enter 保存"
+                rows="3"
+                @keydown.ctrl.enter="submitForm"
+                @keydown.meta.enter="submitForm"
               ></textarea>
-              <div class="form-colors">
-                <button
-                  v-for="c in colors"
-                  :key="c"
-                  class="color-btn"
-                  :class="{ active: form.color === c }"
-                  :style="{ background: c }"
-                  @click="form.color = c"
-                />
-              </div>
               <div class="form-actions">
                 <button class="btn-form btn-cancel" @click="cancelForm">取消</button>
                 <button class="btn-form btn-save" @click="submitForm">保存</button>
@@ -141,6 +143,7 @@ const props = defineProps<{
   lunar: LunarDay | undefined
   solarTerm: string
   quickAddDate: string
+  currentBgColor: string
 }>()
 
 const emit = defineEmits<{
@@ -148,21 +151,16 @@ const emit = defineEmits<{
   create: [event: Omit<Event, 'id' | 'createdAt' | 'updatedAt'>]
   update: [event: Event]
   delete: [id: string]
+  setBgColor: [color: string]
 }>()
 
 const colors = ['#4A90D9', '#E87878', '#6BCB77', '#F0A050', '#9B72CF', '#4ECDC4']
+const bgColors = ['#4A90D9', '#E87878', '#6BCB77', '#F0A050', '#9B72CF', '#4ECDC4']
 const weekdays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六']
 
 const showForm = ref(false)
 const editingId = ref('')
-
-const form = reactive({
-  title: '',
-  description: '',
-  startTime: '',
-  endTime: '',
-  color: '#4A90D9',
-})
+const formText = ref('')
 
 const editForm = reactive({
   title: '',
@@ -201,29 +199,36 @@ function toggleCompleted(evt: Event) {
 }
 
 function submitForm() {
-  if (!form.title.trim()) return
+  if (!formText.value.trim()) return
   emit('create', {
-    title: form.title.trim(),
-    description: form.description.trim(),
+    title: formText.value.trim(),
+    description: '',
     date: props.date,
-    startTime: form.startTime,
-    endTime: form.endTime,
-    color: form.color,
+    startTime: '',
+    endTime: '',
+    color: '#4A90D9',
     completed: false,
   })
   resetForm()
 }
 
 function cancelForm() {
-  resetForm()
+  if (formText.value.trim()) {
+    submitForm()
+  } else {
+    resetForm()
+  }
+}
+
+function handleClose() {
+  if (showForm.value && formText.value.trim()) {
+    submitForm()
+  }
+  emit('close')
 }
 
 function resetForm() {
-  form.title = ''
-  form.description = ''
-  form.startTime = ''
-  form.endTime = ''
-  form.color = '#4A90D9'
+  formText.value = ''
   showForm.value = false
 }
 
@@ -339,6 +344,45 @@ function confirmDelete(id: string) {
   font-weight: 500;
 }
 
+.popup-bg-colors {
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.bg-label {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.4);
+  margin-right: 2px;
+}
+
+.bg-color-btn {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  transition: all 0.15s;
+  cursor: pointer;
+}
+
+.bg-color-btn.active {
+  border-color: #fff;
+  transform: scale(1.2);
+}
+
+.bg-color-btn.none {
+  background: rgba(255, 255, 255, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.bg-color-btn.none:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
 .btn-add, .btn-close {
   width: 28px;
   height: 28px;
@@ -424,6 +468,13 @@ function confirmDelete(id: string) {
 .form-desc {
   resize: none;
   min-height: 40px;
+}
+
+.form-text {
+  resize: none;
+  min-height: 60px;
+  font-size: 14px;
+  line-height: 1.5;
 }
 
 .form-colors {

@@ -6,6 +6,8 @@
       @prev="prevMonth"
       @next="nextMonth"
       @today="goToday"
+      @export="onExport"
+      @import="onImport"
     />
     <div class="app-body">
       <CalendarGrid
@@ -22,10 +24,12 @@
       :lunar="selectedLunar"
       :solar-term="selectedSolarTerm"
       :quick-add-date="quickAddDate"
+      :current-bg-color="selectedBgColor"
       @close="showPopup = false"
       @create="onCreateEvent"
       @update="onUpdateEvent"
       @delete="onDeleteEvent"
+      @set-bg-color="onSetBgColor"
     />
   </div>
 </template>
@@ -35,7 +39,7 @@ import { ref, computed, onMounted, watch, nextTick } from 'vue'
 import AppHeader from './components/AppHeader.vue'
 import CalendarGrid from './components/CalendarGrid.vue'
 import EventPopup from './components/EventPopup.vue'
-import { getMonthDays, createEvent, updateEvent, deleteEvent } from './api'
+import { getMonthDays, createEvent, updateEvent, deleteEvent, setDayBackground, exportData, importData } from './api'
 import type { DayInfo, Event } from './types'
 
 const now = new Date()
@@ -52,6 +56,7 @@ const selectedDay = computed(() =>
 const selectedEvents = computed(() => selectedDay.value?.events ?? [])
 const selectedLunar = computed(() => selectedDay.value?.lunar)
 const selectedSolarTerm = computed(() => selectedDay.value?.solarTerm ?? '')
+const selectedBgColor = computed(() => selectedDay.value?.bgColor ?? '')
 
 async function loadMonth() {
   days.value = await getMonthDays(currentYear.value, currentMonth.value)
@@ -115,6 +120,36 @@ async function onUpdateEvent(event: Event) {
 async function onDeleteEvent(id: string) {
   await deleteEvent(id)
   await loadMonth()
+}
+
+async function onSetBgColor(color: string) {
+  await setDayBackground(selectedDate.value, color)
+  await loadMonth()
+}
+
+async function onExport() {
+  const data = await exportData()
+  const blob = new Blob([data], { type: 'application/json' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = `desktopcal-backup-${formatDate(new Date())}.json`
+  a.click()
+  URL.revokeObjectURL(url)
+}
+
+async function onImport() {
+  const input = document.createElement('input')
+  input.type = 'file'
+  input.accept = '.json'
+  input.onchange = async () => {
+    const file = input.files?.[0]
+    if (!file) return
+    const text = await file.text()
+    await importData(text)
+    await loadMonth()
+  }
+  input.click()
 }
 
 function formatDate(d: Date): string {

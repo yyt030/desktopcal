@@ -29,4 +29,5 @@ export interface DayInfo {
   events: Event[]
   isToday: boolean
   isCurrent: boolean
+  bgColor: string
 }

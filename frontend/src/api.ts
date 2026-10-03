@@ -12,6 +12,9 @@ declare global {
           DeleteEvent(id: string): Promise<void>
           GetTodayLunar(): Promise<LunarDay>
           GetTodaySolarTerm(): Promise<string>
+          SetDayBackground(date: string, color: string): Promise<void>
+          ExportData(): Promise<string>
+          ImportData(data: string): Promise<void>
         }
       }
     }
@@ -46,4 +49,16 @@ export async function getTodayLunar(): Promise<LunarDay> {
 
 export async function getTodaySolarTerm(): Promise<string> {
   return api!.GetTodaySolarTerm()
+}
+
+export async function setDayBackground(date: string, color: string): Promise<void> {
+  return api!.SetDayBackground(date, color)
+}
+
+export async function exportData(): Promise<string> {
+  return api!.ExportData()
+}
+
+export async function importData(data: string): Promise<void> {
+  return api!.ImportData(data)
 }
