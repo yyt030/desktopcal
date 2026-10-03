@@ -48,8 +48,7 @@ import AppHeader from './components/AppHeader.vue'
 import CalendarGrid from './components/CalendarGrid.vue'
 import EventPopup from './components/EventPopup.vue'
 import SettingsPopup from './components/SettingsPopup.vue'
-import { getMonthDays, createEvent, updateEvent, deleteEvent, exportData, importData, getSettings, saveSettings, hideWindow } from './api'
-import { WindowSetSize, WindowSetAlwaysOnTop } from '../wailsjs/runtime/runtime'
+import { getMonthDays, createEvent, updateEvent, deleteEvent, exportData, importData, getSettings, saveSettings, setWindowSize, setWindowAlwaysOnTop } from './api'
 import type { DayInfo, Settings } from './types'
 
 const now = new Date()
@@ -232,8 +231,8 @@ function applySettings(s: Settings) {
   }
   root.style.setProperty('--app-opacity', String(s.opacity / 100))
   root.style.setProperty('--editor-font-size', s.fontSize + 'px')
-  WindowSetSize(s.width, s.height)
-  WindowSetAlwaysOnTop(s.alwaysTop)
+  setWindowSize(s.width, s.height)
+  setWindowAlwaysOnTop(s.alwaysTop)
 }
 
 async function onSaveSettings(s: Settings) {
@@ -256,15 +255,7 @@ onMounted(async () => {
   const s = await getSettings()
   currentSettings.value = s
   applySettings(s)
-  window.addEventListener('keydown', onGlobalKeydown)
 })
-
-function onGlobalKeydown(e: KeyboardEvent) {
-  if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'w') {
-    e.preventDefault()
-    hideWindow()
-  }
-}
 </script>
 
 <style scoped>

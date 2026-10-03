@@ -28,7 +28,7 @@ export interface DayInfo {
   solarTerm: string
   events: Event[]
   isToday: boolean
-  isCurrent: boolean
+  isCurrentMonth: boolean
   bgColor: string
 }
 

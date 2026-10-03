@@ -4,7 +4,7 @@
     :class="{
       today: day.isToday,
       selected,
-      'other-month': !day.isCurrent,
+      'other-month': !day.isCurrentMonth,
     }"
     :style="day.bgColor ? { background: day.bgColor + '18', borderColor: day.bgColor + '40' } : {}"
     @click="$emit('select', day.solarDate)"

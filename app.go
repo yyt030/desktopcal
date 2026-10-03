@@ -1,19 +1,21 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"time"
 
 	"desktopcal/internal/db"
 	"desktopcal/internal/lunar"
 	"desktopcal/internal/model"
+
+	"github.com/wailsapp/wails/v3/pkg/application"
 )
 
 type App struct {
-	ctx  context.Context
-	db   *db.DB
-	lcal *lunar.Calendar
+	app     *application.App
+	mainWin application.Window
+	db      *db.DB
+	lcal    *lunar.Calendar
 }
 
 func NewApp(database *db.DB) *App {
@@ -23,8 +25,12 @@ func NewApp(database *db.DB) *App {
 	}
 }
 
-func (a *App) startup(ctx context.Context) {
-	a.ctx = ctx
+// setRuntimeRefs is called from main once the Wails app and main window exist,
+// giving the bound service access to window controls. Unexported so it is not
+// generated as a frontend-bound method.
+func (a *App) setRuntimeRefs(app *application.App, win application.Window) {
+	a.app = app
+	a.mainWin = win
 }
 
 func (a *App) GetMonthDays(year, month int) ([]*model.DayInfo, error) {

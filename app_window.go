@@ -1,17 +1,33 @@
 package main
 
-import (
-	"github.com/wailsapp/wails/v2/pkg/runtime"
-)
+// Window controls exposed to the frontend as bound service methods.
 
 func (a *App) HideWindow() {
-	runtime.WindowHide(a.ctx)
+	if a.mainWin != nil {
+		a.mainWin.Hide()
+	}
 }
 
 func (a *App) ShowWindow() {
-	runtime.WindowShow(a.ctx)
+	if a.mainWin != nil {
+		a.mainWin.Show()
+	}
 }
 
 func (a *App) QuitApp() {
-	runtime.Quit(a.ctx)
+	if a.app != nil {
+		a.app.Quit()
+	}
+}
+
+func (a *App) SetWindowSize(width, height int) {
+	if a.mainWin != nil {
+		a.mainWin.SetSize(width, height)
+	}
+}
+
+func (a *App) SetWindowAlwaysOnTop(onTop bool) {
+	if a.mainWin != nil {
+		a.mainWin.SetAlwaysOnTop(onTop)
+	}
 }
