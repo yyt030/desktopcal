@@ -8,7 +8,7 @@
         :class="{ weekend: weekendIndicesces.has(i) }"
       >{{ w }}</span>
     </div>
-    <div class="grid">
+    <div class="grid" :style="{ gridTemplateRows: `repeat(${rowCount}, 1fr)` }">
       <DayCell
         v-for="(day, i) in days"
         :key="i"
@@ -56,6 +56,8 @@ const weekdays = computed(() => {
   }
   return result
 })
+
+const rowCount = computed(() => props.days.length / 7)
 </script>
 
 <style scoped>
@@ -90,7 +92,6 @@ const weekdays = computed(() => {
 .grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  grid-template-rows: repeat(6, 1fr);
   gap: 2px;
   padding: 4px;
   flex: 1;

@@ -73,7 +73,7 @@ const lunarDisplay = computed(() => {
   position: relative;
   min-height: 0;
   gap: 2px;
-  border: 1px solid transparent;
+  border: 1px solid var(--border);
 }
 
 .day-cell:hover {

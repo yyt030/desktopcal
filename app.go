@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"time"
 
@@ -32,7 +31,36 @@ func (a *App) GetMonthDays(year, month int) ([]*model.DayInfo, error) {
 	today := time.Now()
 	todayStr := today.Format("2006-01-02")
 
-	allEvents, err := a.db.GetEventsByMonth(year, month)
+	firstDayOfWeek := 0
+	if v, _ := a.db.GetSetting("first_day_of_week"); v != "" {
+		fmt.Sscanf(v, "%d", &firstDayOfWeek)
+	}
+
+	start := time.Date(year, time.Month(month), 1, 0, 0, 0, 0, time.Local)
+	end := start.AddDate(0, 1, -1)
+	weekday := int(start.Weekday())
+	offset := (weekday - firstDayOfWeek + 7) % 7
+	naturalStart := start.AddDate(0, 0, -offset)
+	lastDayOffset := (int(end.Weekday()) - firstDayOfWeek + 7) % 7
+	trailing := (6 - lastDayOffset) % 7
+	totalDays := offset + end.Day() + trailing
+	rows := totalDays / 7
+
+	todayRow := 0
+	if today.Year() == year && int(today.Month()) == month {
+		todayRow = (offset + today.Day() - 1) / 7
+	}
+	leading := rows/2 - todayRow
+	if leading < 0 {
+		leading = 0
+	}
+	if leading > rows {
+		leading = rows
+	}
+	gridStart := naturalStart.AddDate(0, 0, -leading*7)
+
+	gridEnd := gridStart.AddDate(0, 0, totalDays-1)
+	allEvents, err := a.db.GetEventsByDateRange(gridStart.Format("2006-01-02"), gridEnd.Format("2006-01-02"))
 	if err != nil {
 		allEvents = []*model.Event{}
 	}
@@ -41,34 +69,21 @@ func (a *App) GetMonthDays(year, month int) ([]*model.DayInfo, error) {
 		eventsByDate[e.Date] = append(eventsByDate[e.Date], e)
 	}
 
-	bgColors, err := a.db.GetDayBackgroundsByMonth(year, month)
+	bgColors, err := a.db.GetDayBackgroundsByDateRange(gridStart.Format("2006-01-02"), gridEnd.Format("2006-01-02"))
 	if err != nil {
 		bgColors = make(map[string]string)
 	}
 
-	firstDayOfWeek := 0
-	if v, _ := a.db.GetSetting("first_day_of_week"); v != "" {
-		fmt.Sscanf(v, "%d", &firstDayOfWeek)
-	}
-
-	start := time.Date(year, time.Month(month), 1, 0, 0, 0, 0, time.Local)
-	weekday := int(start.Weekday())
-	offset := (weekday - firstDayOfWeek + 7) % 7
-	gridStart := start.AddDate(0, 0, -offset)
-
-	days := make([]*model.DayInfo, 42)
-	for i := 0; i < 42; i++ {
+	days := make([]*model.DayInfo, totalDays)
+	for i := 0; i < totalDays; i++ {
 		d := gridStart.AddDate(0, 0, i)
 		dateStr := d.Format("2006-01-02")
-
 		ld := a.lcal.SolarToLunar(d)
 		st := a.lcal.GetSolarTerm(d)
-
 		events := eventsByDate[dateStr]
 		if events == nil {
 			events = []*model.Event{}
 		}
-
 		days[i] = &model.DayInfo{
 			SolarDate: dateStr,
 			Lunar:     ld,
@@ -114,94 +129,4 @@ func (a *App) GetTodaySolarTerm() string {
 
 func (a *App) SetDayBackground(date, color string) error {
 	return a.db.SetDayBackground(date, color)
-}
-
-type exportData struct {
-	Events       []*model.Event    `json:"events"`
-	Backgrounds  map[string]string `json:"backgrounds"`
-	ExportedAt   string            `json:"exportedAt"`
-}
-
-func (a *App) ExportData() (string, error) {
-	events, err := a.db.GetAllEvents()
-	if err != nil {
-		return "", fmt.Errorf("导出事件失败: %w", err)
-	}
-	backgrounds, err := a.db.GetAllBackgrounds()
-	if err != nil {
-		return "", fmt.Errorf("导出背景失败: %w", err)
-	}
-	data := exportData{
-		Events:      events,
-		Backgrounds: backgrounds,
-		ExportedAt:  time.Now().Format(time.RFC3339),
-	}
-	b, err := json.MarshalIndent(data, "", "  ")
-	if err != nil {
-		return "", err
-	}
-	return string(b), nil
-}
-
-func (a *App) ImportData(jsonStr string) error {
-	var data exportData
-	if err := json.Unmarshal([]byte(jsonStr), &data); err != nil {
-		return fmt.Errorf("解析导入数据失败: %w", err)
-	}
-	if err := a.db.ImportEvents(data.Events); err != nil {
-		return fmt.Errorf("导入事件失败: %w", err)
-	}
-	if err := a.db.ImportBackgrounds(data.Backgrounds); err != nil {
-		return fmt.Errorf("导入背景失败: %w", err)
-	}
-	return nil
-}
-
-func (a *App) GetSettings() *model.Settings {
-	s := &model.Settings{
-		Opacity:        100,
-		Width:          1100,
-		Height:         750,
-		Theme:          "dark",
-		AlwaysTop:      true,
-		FontSize:       13,
-		FirstDayOfWeek: 0,
-	}
-	if v, _ := a.db.GetSetting("opacity"); v != "" {
-		fmt.Sscanf(v, "%d", &s.Opacity)
-	}
-	if v, _ := a.db.GetSetting("width"); v != "" {
-		fmt.Sscanf(v, "%d", &s.Width)
-	}
-	if v, _ := a.db.GetSetting("height"); v != "" {
-		fmt.Sscanf(v, "%d", &s.Height)
-	}
-	if v, _ := a.db.GetSetting("theme"); v != "" {
-		s.Theme = v
-	}
-	if v, _ := a.db.GetSetting("always_top"); v != "" {
-		s.AlwaysTop = v == "true"
-	}
-	if v, _ := a.db.GetSetting("font_size"); v != "" {
-		fmt.Sscanf(v, "%d", &s.FontSize)
-	}
-	if v, _ := a.db.GetSetting("first_day_of_week"); v != "" {
-		fmt.Sscanf(v, "%d", &s.FirstDayOfWeek)
-	}
-	return s
-}
-
-func (a *App) SaveSettings(s *model.Settings) error {
-	a.db.SetSetting("opacity", fmt.Sprintf("%d", s.Opacity))
-	a.db.SetSetting("width", fmt.Sprintf("%d", s.Width))
-	a.db.SetSetting("height", fmt.Sprintf("%d", s.Height))
-	a.db.SetSetting("theme", s.Theme)
-	a.db.SetSetting("font_size", fmt.Sprintf("%d", s.FontSize))
-	a.db.SetSetting("first_day_of_week", fmt.Sprintf("%d", s.FirstDayOfWeek))
-	if s.AlwaysTop {
-		a.db.SetSetting("always_top", "true")
-	} else {
-		a.db.SetSetting("always_top", "false")
-	}
-	return nil
 }
