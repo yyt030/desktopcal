@@ -14,17 +14,19 @@
         @select-day="onSelectDay"
         @quick-add="onQuickAdd"
       />
-      <EventPanel
-        :date="selectedDate"
-        :events="selectedEvents"
-        :lunar="selectedLunar"
-        :solar-term="selectedSolarTerm"
-        :quick-add-date="quickAddDate"
-        @create="onCreateEvent"
-        @update="onUpdateEvent"
-        @delete="onDeleteEvent"
-      />
     </div>
+    <EventPopup
+      :visible="showPopup"
+      :date="selectedDate"
+      :events="selectedEvents"
+      :lunar="selectedLunar"
+      :solar-term="selectedSolarTerm"
+      :quick-add-date="quickAddDate"
+      @close="showPopup = false"
+      @create="onCreateEvent"
+      @update="onUpdateEvent"
+      @delete="onDeleteEvent"
+    />
   </div>
 </template>
 
@@ -32,7 +34,7 @@
 import { ref, computed, onMounted, watch, nextTick } from 'vue'
 import AppHeader from './components/AppHeader.vue'
 import CalendarGrid from './components/CalendarGrid.vue'
-import EventPanel from './components/EventPanel.vue'
+import EventPopup from './components/EventPopup.vue'
 import { getMonthDays, createEvent, updateEvent, deleteEvent } from './api'
 import type { DayInfo, Event } from './types'
 
@@ -42,6 +44,7 @@ const currentMonth = ref(now.getMonth() + 1)
 const days = ref<DayInfo[]>([])
 const selectedDate = ref(formatDate(now))
 const quickAddDate = ref('')
+const showPopup = ref(false)
 
 const selectedDay = computed(() =>
   days.value.find(d => d.solarDate === selectedDate.value)
@@ -86,6 +89,7 @@ function onSelectDay(date: string) {
 function onQuickAdd(date: string) {
   selectedDate.value = date
   quickAddDate.value = ''
+  showPopup.value = true
   nextTick(() => {
     quickAddDate.value = date
   })
@@ -139,7 +143,6 @@ onMounted(async () => {
 .app-body {
   display: flex;
   flex: 1;
-  gap: 16px;
   min-height: 0;
 }
 </style>
