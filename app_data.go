@@ -58,8 +58,10 @@ func (a *App) GetSettings() *model.Settings {
 		AlwaysTop:      true,
 		FontSize:       13,
 		FirstDayOfWeek: 0,
+		ShowLunar:      true,
+		ShowSolarTerm:  true,
 	}
-	keys := []string{"opacity", "width", "height", "theme", "always_top", "font_size", "first_day_of_week"}
+	keys := []string{"opacity", "width", "height", "theme", "always_top", "font_size", "first_day_of_week", "show_lunar", "show_solar_term"}
 	settings, err := a.db.GetSettings(keys)
 	if err != nil {
 		return s
@@ -85,6 +87,12 @@ func (a *App) GetSettings() *model.Settings {
 	if v, ok := settings["first_day_of_week"]; ok && v != "" {
 		fmt.Sscanf(v, "%d", &s.FirstDayOfWeek)
 	}
+	if v, ok := settings["show_lunar"]; ok && v != "" {
+		s.ShowLunar = v == "true"
+	}
+	if v, ok := settings["show_solar_term"]; ok && v != "" {
+		s.ShowSolarTerm = v == "true"
+	}
 	return s
 }
 
@@ -100,6 +108,16 @@ func (a *App) SaveSettings(s *model.Settings) error {
 	}
 	if s.AlwaysTop {
 		settings["always_top"] = "true"
+	}
+	if s.ShowLunar {
+		settings["show_lunar"] = "true"
+	} else {
+		settings["show_lunar"] = "false"
+	}
+	if s.ShowSolarTerm {
+		settings["show_solar_term"] = "true"
+	} else {
+		settings["show_solar_term"] = "false"
 	}
 	return a.db.SetSettings(settings)
 }

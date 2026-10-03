@@ -123,6 +123,32 @@
                 </div>
               </div>
             </div>
+
+            <div class="setting-group">
+              <label class="setting-label">显示农历</label>
+              <div class="setting-control">
+                <button
+                  class="toggle-btn"
+                  :class="{ active: localSettings.showLunar }"
+                  @click="localSettings.showLunar = !localSettings.showLunar"
+                >
+                  {{ localSettings.showLunar ? '开启' : '关闭' }}
+                </button>
+              </div>
+            </div>
+
+            <div class="setting-group">
+              <label class="setting-label">显示节气</label>
+              <div class="setting-control">
+                <button
+                  class="toggle-btn"
+                  :class="{ active: localSettings.showSolarTerm }"
+                  @click="localSettings.showSolarTerm = !localSettings.showSolarTerm"
+                >
+                  {{ localSettings.showSolarTerm ? '开启' : '关闭' }}
+                </button>
+              </div>
+            </div>
           </div>
 
           <div class="popup-footer">

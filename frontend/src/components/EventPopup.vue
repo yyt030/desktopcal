@@ -9,11 +9,11 @@
                 <span class="popup-day">{{ displayDay }}</span>
                 <span class="popup-weekday">{{ weekdayName }}</span>
               </div>
-              <div v-if="lunar" class="popup-lunar">
+              <div v-if="lunar && showLunar" class="popup-lunar">
                 <span>{{ lunar.monthName }}{{ lunar.dayName }}</span>
                 <span class="lunar-extra">{{ lunar.ganZhi }}年 {{ lunar.animal }}</span>
               </div>
-              <div v-if="solarTerm" class="popup-solar-term">
+              <div v-if="solarTerm && showSolarTerm" class="popup-solar-term">
                 {{ solarTerm }}
               </div>
             </div>
@@ -62,6 +62,8 @@ const props = defineProps<{
   lunar: LunarDay | undefined
   solarTerm: string
   quickAddDate: string
+  showLunar: boolean
+  showSolarTerm: boolean
 }>()
 
 const emit = defineEmits<{

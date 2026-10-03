@@ -14,9 +14,9 @@
       <span class="day-number">{{ dayNum }}</span>
       <span v-if="day.isToday" class="today-dot"></span>
     </div>
-    <div class="lunar-row">
-      <span v-if="day.solarTerm" class="solar-term">{{ day.solarTerm }}</span>
-      <span v-else class="lunar-text">{{ lunarDisplay }}</span>
+    <div v-if="showLunar || showSolarTerm" class="lunar-row">
+      <span v-if="showSolarTerm && day.solarTerm" class="solar-term">{{ day.solarTerm }}</span>
+      <span v-else-if="showLunar" class="lunar-text">{{ lunarDisplay }}</span>
     </div>
     <div v-if="day.events.length > 0" class="events-row">
       <span
@@ -45,6 +45,8 @@ import type { DayInfo } from '../types'
 const props = defineProps<{
   day: DayInfo
   selected: boolean
+  showLunar: boolean
+  showSolarTerm: boolean
 }>()
 
 const dayNum = computed(() => {

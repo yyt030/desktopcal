@@ -14,6 +14,8 @@
         :key="i"
         :day="day"
         :selected="day.solarDate === selectedDate"
+        :show-lunar="showLunar"
+        :show-solar-term="showSolarTerm"
         @select="$emit('selectDay', $event)"
         @quick-add="$emit('quickAdd', $event)"
       />
@@ -30,6 +32,8 @@ const props = defineProps<{
   days: DayInfo[]
   selectedDate: string
   firstDayOfWeek: number
+  showLunar: boolean
+  showSolarTerm: boolean
 }>()
 
 defineEmits<{

@@ -15,6 +15,8 @@
         :days="days"
         :selected-date="selectedDate"
         :first-day-of-week="currentSettings.firstDayOfWeek"
+        :show-lunar="currentSettings.showLunar"
+        :show-solar-term="currentSettings.showSolarTerm"
         @select-day="onSelectDay"
         @quick-add="onDblClickDay"
       />
@@ -26,6 +28,8 @@
       :lunar="selectedLunar"
       :solar-term="selectedSolarTerm"
       :quick-add-date="quickAddDate"
+      :show-lunar="currentSettings.showLunar"
+      :show-solar-term="currentSettings.showSolarTerm"
       @close="showPopup = false"
       @save-lines="onSaveLines"
     />
@@ -64,6 +68,8 @@ const currentSettings = ref<Settings>({
   alwaysTop: true,
   fontSize: 13,
   firstDayOfWeek: 0,
+  showLunar: true,
+  showSolarTerm: true,
 })
 
 const selectedDay = computed(() =>

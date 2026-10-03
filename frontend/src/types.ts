@@ -40,4 +40,6 @@ export interface Settings {
   alwaysTop: boolean
   fontSize: number
   firstDayOfWeek: number
+  showLunar: boolean
+  showSolarTerm: boolean
 }
