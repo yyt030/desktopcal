@@ -10,6 +10,10 @@ export function DeleteEvent(arg1) {
   return window['go']['main']['App']['DeleteEvent'](arg1);
 }
 
+export function ExportData() {
+  return window['go']['main']['App']['ExportData']();
+}
+
 export function GetEventsByDate(arg1) {
   return window['go']['main']['App']['GetEventsByDate'](arg1);
 }
@@ -18,12 +22,40 @@ export function GetMonthDays(arg1, arg2) {
   return window['go']['main']['App']['GetMonthDays'](arg1, arg2);
 }
 
+export function GetSettings() {
+  return window['go']['main']['App']['GetSettings']();
+}
+
 export function GetTodayLunar() {
   return window['go']['main']['App']['GetTodayLunar']();
 }
 
 export function GetTodaySolarTerm() {
   return window['go']['main']['App']['GetTodaySolarTerm']();
+}
+
+export function HideWindow() {
+  return window['go']['main']['App']['HideWindow']();
+}
+
+export function ImportData(arg1) {
+  return window['go']['main']['App']['ImportData'](arg1);
+}
+
+export function QuitApp() {
+  return window['go']['main']['App']['QuitApp']();
+}
+
+export function SaveSettings(arg1) {
+  return window['go']['main']['App']['SaveSettings'](arg1);
+}
+
+export function SetDayBackground(arg1, arg2) {
+  return window['go']['main']['App']['SetDayBackground'](arg1, arg2);
+}
+
+export function ShowWindow() {
+  return window['go']['main']['App']['ShowWindow']();
 }
 
 export function UpdateEvent(arg1) {

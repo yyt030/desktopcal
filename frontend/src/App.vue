@@ -48,7 +48,7 @@ import AppHeader from './components/AppHeader.vue'
 import CalendarGrid from './components/CalendarGrid.vue'
 import EventPopup from './components/EventPopup.vue'
 import SettingsPopup from './components/SettingsPopup.vue'
-import { getMonthDays, createEvent, updateEvent, deleteEvent, exportData, importData, getSettings, saveSettings } from './api'
+import { getMonthDays, createEvent, updateEvent, deleteEvent, exportData, importData, getSettings, saveSettings, hideWindow } from './api'
 import { WindowSetSize, WindowSetAlwaysOnTop } from '../wailsjs/runtime/runtime'
 import type { DayInfo, Settings } from './types'
 
@@ -256,7 +256,15 @@ onMounted(async () => {
   const s = await getSettings()
   currentSettings.value = s
   applySettings(s)
+  window.addEventListener('keydown', onGlobalKeydown)
 })
+
+function onGlobalKeydown(e: KeyboardEvent) {
+  if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'w') {
+    e.preventDefault()
+    hideWindow()
+  }
+}
 </script>
 
 <style scoped>

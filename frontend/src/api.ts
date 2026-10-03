@@ -17,6 +17,9 @@ declare global {
           ImportData(data: string): Promise<void>
           GetSettings(): Promise<Settings>
           SaveSettings(settings: Settings): Promise<void>
+          HideWindow(): Promise<void>
+          ShowWindow(): Promise<void>
+          QuitApp(): Promise<void>
         }
       }
     }
@@ -71,4 +74,16 @@ export async function getSettings(): Promise<Settings> {
 
 export async function saveSettings(settings: Settings): Promise<void> {
   return api!.SaveSettings(settings)
+}
+
+export async function hideWindow(): Promise<void> {
+  return api!.HideWindow()
+}
+
+export async function showWindow(): Promise<void> {
+  return api!.ShowWindow()
+}
+
+export async function quitApp(): Promise<void> {
+  return api!.QuitApp()
 }

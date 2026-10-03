@@ -124,6 +124,11 @@ function syncScroll() {
 }
 
 function handleKeydown(e: KeyboardEvent) {
+  if (e.key === 'Escape') {
+    e.preventDefault()
+    saveAndClose()
+    return
+  }
   if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
     e.preventDefault()
     saveAndClose()
@@ -225,7 +230,7 @@ watch(text, () => {
 }
 
 .popup {
-  width: 380px;
+  width: 420px;
   max-height: 70vh;
   display: flex;
   flex-direction: column;
