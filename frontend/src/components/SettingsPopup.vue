@@ -101,6 +101,28 @@
                 <span class="setting-value">{{ localSettings.fontSize }}px</span>
               </div>
             </div>
+
+            <div class="setting-group">
+              <label class="setting-label">每周第一天</label>
+              <div class="setting-control">
+                <div class="theme-options">
+                  <button
+                    class="theme-btn"
+                    :class="{ active: localSettings.firstDayOfWeek === 0 }"
+                    @click="localSettings.firstDayOfWeek = 0"
+                  >
+                    周日
+                  </button>
+                  <button
+                    class="theme-btn"
+                    :class="{ active: localSettings.firstDayOfWeek === 1 }"
+                    @click="localSettings.firstDayOfWeek = 1"
+                  >
+                    周一
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
 
           <div class="popup-footer">

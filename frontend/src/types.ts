@@ -39,4 +39,5 @@ export interface Settings {
   theme: string
   alwaysTop: boolean
   fontSize: number
+  firstDayOfWeek: number
 }

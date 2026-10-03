@@ -14,6 +14,7 @@
       <CalendarGrid
         :days="days"
         :selected-date="selectedDate"
+        :first-day-of-week="currentSettings.firstDayOfWeek"
         @select-day="onSelectDay"
         @quick-add="onDblClickDay"
       />
@@ -62,6 +63,7 @@ const currentSettings = ref<Settings>({
   theme: 'dark',
   alwaysTop: true,
   fontSize: 13,
+  firstDayOfWeek: 0,
 })
 
 const selectedDay = computed(() =>

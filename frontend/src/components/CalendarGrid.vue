@@ -5,7 +5,7 @@
         v-for="(w, i) in weekdays"
         :key="i"
         class="weekday"
-        :class="{ weekend: i === 0 || i === 6 }"
+        :class="{ weekend: weekendIndicesces.has(i) }"
       >{{ w }}</span>
     </div>
     <div class="grid">
@@ -22,12 +22,14 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
 import DayCell from './DayCell.vue'
 import type { DayInfo } from '../types'
 
-defineProps<{
+const props = defineProps<{
   days: DayInfo[]
   selectedDate: string
+  firstDayOfWeek: number
 }>()
 
 defineEmits<{
@@ -35,7 +37,25 @@ defineEmits<{
   quickAdd: [date: string]
 }>()
 
-const weekdays = ['日', '一', '二', '三', '四', '五', '六']
+const allWeekdays = ['日', '一', '二', '三', '四', '五', '六']
+const weekendIndicesces = computed(() => {
+  const indices = new Set<number>()
+  for (let i = 0; i < 7; i++) {
+    const dayOfWeek = (props.firstDayOfWeek + i) % 7
+    if (dayOfWeek === 0 || dayOfWeek === 6) {
+      indices.add(i)
+    }
+  }
+  return indices
+})
+
+const weekdays = computed(() => {
+  const result: string[] = []
+  for (let i = 0; i < 7; i++) {
+    result.push(allWeekdays[(props.firstDayOfWeek + i) % 7])
+  }
+  return result
+})
 </script>
 
 <style scoped>

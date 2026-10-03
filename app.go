@@ -46,9 +46,15 @@ func (a *App) GetMonthDays(year, month int) ([]*model.DayInfo, error) {
 		bgColors = make(map[string]string)
 	}
 
+	firstDayOfWeek := 0
+	if v, _ := a.db.GetSetting("first_day_of_week"); v != "" {
+		fmt.Sscanf(v, "%d", &firstDayOfWeek)
+	}
+
 	start := time.Date(year, time.Month(month), 1, 0, 0, 0, 0, time.Local)
 	weekday := int(start.Weekday())
-	gridStart := start.AddDate(0, 0, -weekday)
+	offset := (weekday - firstDayOfWeek + 7) % 7
+	gridStart := start.AddDate(0, 0, -offset)
 
 	days := make([]*model.DayInfo, 42)
 	for i := 0; i < 42; i++ {
@@ -153,12 +159,13 @@ func (a *App) ImportData(jsonStr string) error {
 
 func (a *App) GetSettings() *model.Settings {
 	s := &model.Settings{
-		Opacity:    100,
-		Width:      1100,
-		Height:     750,
-		Theme:      "dark",
-		AlwaysTop:  true,
-		FontSize:   13,
+		Opacity:        100,
+		Width:          1100,
+		Height:         750,
+		Theme:          "dark",
+		AlwaysTop:      true,
+		FontSize:       13,
+		FirstDayOfWeek: 0,
 	}
 	if v, _ := a.db.GetSetting("opacity"); v != "" {
 		fmt.Sscanf(v, "%d", &s.Opacity)
@@ -178,6 +185,9 @@ func (a *App) GetSettings() *model.Settings {
 	if v, _ := a.db.GetSetting("font_size"); v != "" {
 		fmt.Sscanf(v, "%d", &s.FontSize)
 	}
+	if v, _ := a.db.GetSetting("first_day_of_week"); v != "" {
+		fmt.Sscanf(v, "%d", &s.FirstDayOfWeek)
+	}
 	return s
 }
 
@@ -187,6 +197,7 @@ func (a *App) SaveSettings(s *model.Settings) error {
 	a.db.SetSetting("height", fmt.Sprintf("%d", s.Height))
 	a.db.SetSetting("theme", s.Theme)
 	a.db.SetSetting("font_size", fmt.Sprintf("%d", s.FontSize))
+	a.db.SetSetting("first_day_of_week", fmt.Sprintf("%d", s.FirstDayOfWeek))
 	if s.AlwaysTop {
 		a.db.SetSetting("always_top", "true")
 	} else {

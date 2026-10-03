@@ -40,10 +40,11 @@ type DayInfo struct {
 }
 
 type Settings struct {
-	Opacity   int    `json:"opacity"`
-	Width     int    `json:"width"`
-	Height    int    `json:"height"`
-	Theme     string `json:"theme"`
-	AlwaysTop bool   `json:"alwaysTop"`
-	FontSize  int    `json:"fontSize"`
+	Opacity       int    `json:"opacity"`
+	Width         int    `json:"width"`
+	Height        int    `json:"height"`
+	Theme         string `json:"theme"`
+	AlwaysTop     bool   `json:"alwaysTop"`
+	FontSize      int    `json:"fontSize"`
+	FirstDayOfWeek int   `json:"firstDayOfWeek"`
 }
