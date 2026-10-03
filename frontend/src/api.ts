@@ -1,4 +1,4 @@
-import type { Event, DayInfo, LunarDay } from './types'
+import type { Event, DayInfo, LunarDay, Settings } from './types'
 
 declare global {
   interface Window {
@@ -15,6 +15,8 @@ declare global {
           SetDayBackground(date: string, color: string): Promise<void>
           ExportData(): Promise<string>
           ImportData(data: string): Promise<void>
+          GetSettings(): Promise<Settings>
+          SaveSettings(settings: Settings): Promise<void>
         }
       }
     }
@@ -61,4 +63,12 @@ export async function exportData(): Promise<string> {
 
 export async function importData(data: string): Promise<void> {
   return api!.ImportData(data)
+}
+
+export async function getSettings(): Promise<Settings> {
+  return api!.GetSettings()
+}
+
+export async function saveSettings(settings: Settings): Promise<void> {
+  return api!.SaveSettings(settings)
 }

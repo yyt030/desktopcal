@@ -38,3 +38,11 @@ type DayInfo struct {
 	IsCurrent bool      `json:"isCurrentMonth"`
 	BgColor   string    `json:"bgColor"`
 }
+
+type Settings struct {
+	Opacity   int    `json:"opacity"`
+	Width     int    `json:"width"`
+	Height    int    `json:"height"`
+	Theme     string `json:"theme"`
+	AlwaysTop bool   `json:"alwaysTop"`
+}

@@ -31,3 +31,11 @@ export interface DayInfo {
   isCurrent: boolean
   bgColor: string
 }
+
+export interface Settings {
+  opacity: number
+  width: number
+  height: number
+  theme: string
+  alwaysTop: boolean
+}

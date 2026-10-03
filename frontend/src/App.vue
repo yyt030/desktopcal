@@ -8,6 +8,7 @@
       @today="goToday"
       @export="onExport"
       @import="onImport"
+      @settings="showSettings = true"
     />
     <div class="app-body">
       <CalendarGrid
@@ -29,6 +30,12 @@
       @save-lines="onSaveLines"
       @set-bg-color="onSetBgColor"
     />
+    <SettingsPopup
+      :visible="showSettings"
+      :settings="currentSettings"
+      @close="showSettings = false"
+      @save="onSaveSettings"
+    />
   </div>
 </template>
 
@@ -37,8 +44,10 @@ import { ref, computed, onMounted, watch, nextTick } from 'vue'
 import AppHeader from './components/AppHeader.vue'
 import CalendarGrid from './components/CalendarGrid.vue'
 import EventPopup from './components/EventPopup.vue'
-import { getMonthDays, createEvent, updateEvent, deleteEvent, setDayBackground, exportData, importData } from './api'
-import type { DayInfo } from './types'
+import SettingsPopup from './components/SettingsPopup.vue'
+import { getMonthDays, createEvent, updateEvent, deleteEvent, setDayBackground, exportData, importData, getSettings, saveSettings } from './api'
+import { WindowSetSize, WindowSetAlwaysOnTop } from '../wailsjs/runtime/runtime'
+import type { DayInfo, Settings } from './types'
 
 const now = new Date()
 const currentYear = ref(now.getFullYear())
@@ -47,6 +56,14 @@ const days = ref<DayInfo[]>([])
 const selectedDate = ref(formatDate(now))
 const quickAddDate = ref('')
 const showPopup = ref(false)
+const showSettings = ref(false)
+const currentSettings = ref<Settings>({
+  opacity: 100,
+  width: 1100,
+  height: 750,
+  theme: 'dark',
+  alwaysTop: true,
+})
 
 const selectedDay = computed(() =>
   days.value.find(d => d.solarDate === selectedDate.value)
@@ -172,6 +189,62 @@ async function onImport() {
   input.click()
 }
 
+const themeVars: Record<string, Record<string, string>> = {
+  dark: {
+    '--bg-primary': '#1e1e2e',
+    '--bg-secondary': '#2a2a3e',
+    '--bg-hover': '#33334d',
+    '--text-primary': '#ffffff',
+    '--text-secondary': 'rgba(255,255,255,0.6)',
+    '--border': 'rgba(255,255,255,0.1)',
+    '--accent': '#4A90D9',
+  },
+  light: {
+    '--bg-primary': '#f5f5f5',
+    '--bg-secondary': '#e8e8e8',
+    '--bg-hover': '#ddd',
+    '--text-primary': '#1a1a1a',
+    '--text-secondary': 'rgba(0,0,0,0.55)',
+    '--border': 'rgba(0,0,0,0.12)',
+    '--accent': '#2563eb',
+  },
+  blue: {
+    '--bg-primary': '#1a3a5c',
+    '--bg-secondary': '#1e4470',
+    '--bg-hover': '#254e80',
+    '--text-primary': '#e8f0ff',
+    '--text-secondary': 'rgba(232,240,255,0.6)',
+    '--border': 'rgba(255,255,255,0.12)',
+    '--accent': '#5ba3f5',
+  },
+  green: {
+    '--bg-primary': '#1a3c2e',
+    '--bg-secondary': '#1e4a36',
+    '--bg-hover': '#256040',
+    '--text-primary': '#e8ffe8',
+    '--text-secondary': 'rgba(232,255,232,0.6)',
+    '--border': 'rgba(255,255,255,0.12)',
+    '--accent': '#4caf50',
+  },
+}
+
+function applySettings(s: Settings) {
+  const root = document.documentElement
+  const vars = themeVars[s.theme] || themeVars.dark
+  for (const [k, v] of Object.entries(vars)) {
+    root.style.setProperty(k, v)
+  }
+  root.style.setProperty('--app-opacity', String(s.opacity / 100))
+  WindowSetSize(s.width, s.height)
+  WindowSetAlwaysOnTop(s.alwaysTop)
+}
+
+async function onSaveSettings(s: Settings) {
+  currentSettings.value = s
+  await saveSettings(s)
+  applySettings(s)
+}
+
 function formatDate(d: Date): string {
   const y = d.getFullYear()
   const m = String(d.getMonth() + 1).padStart(2, '0')
@@ -183,6 +256,9 @@ watch([currentYear, currentMonth], loadMonth)
 
 onMounted(async () => {
   await loadMonth()
+  const s = await getSettings()
+  currentSettings.value = s
+  applySettings(s)
 })
 </script>
 
@@ -193,6 +269,7 @@ onMounted(async () => {
   height: 100vh;
   padding: 16px 20px;
   gap: 12px;
+  opacity: var(--app-opacity, 1);
 }
 
 .app-body {

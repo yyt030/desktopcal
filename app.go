@@ -150,3 +150,42 @@ func (a *App) ImportData(jsonStr string) error {
 	}
 	return nil
 }
+
+func (a *App) GetSettings() *model.Settings {
+	s := &model.Settings{
+		Opacity:   100,
+		Width:     1100,
+		Height:    750,
+		Theme:     "dark",
+		AlwaysTop: true,
+	}
+	if v, _ := a.db.GetSetting("opacity"); v != "" {
+		fmt.Sscanf(v, "%d", &s.Opacity)
+	}
+	if v, _ := a.db.GetSetting("width"); v != "" {
+		fmt.Sscanf(v, "%d", &s.Width)
+	}
+	if v, _ := a.db.GetSetting("height"); v != "" {
+		fmt.Sscanf(v, "%d", &s.Height)
+	}
+	if v, _ := a.db.GetSetting("theme"); v != "" {
+		s.Theme = v
+	}
+	if v, _ := a.db.GetSetting("always_top"); v != "" {
+		s.AlwaysTop = v == "true"
+	}
+	return s
+}
+
+func (a *App) SaveSettings(s *model.Settings) error {
+	a.db.SetSetting("opacity", fmt.Sprintf("%d", s.Opacity))
+	a.db.SetSetting("width", fmt.Sprintf("%d", s.Width))
+	a.db.SetSetting("height", fmt.Sprintf("%d", s.Height))
+	a.db.SetSetting("theme", s.Theme)
+	if s.AlwaysTop {
+		a.db.SetSetting("always_top", "true")
+	} else {
+		a.db.SetSetting("always_top", "false")
+	}
+	return nil
+}
