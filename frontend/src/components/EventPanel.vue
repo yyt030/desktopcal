@@ -67,9 +67,9 @@
           v-for="evt in events"
           :key="evt.id"
           class="event-card"
-          :class="{ editing: editingId === evt.id }"
+          :class="{ editing: editingId === evt.id, completed: evt.completed }"
         >
-          <div v-if="editingId !== evt.id" class="event-view" @click="startEdit(evt)">
+          <div v-if="editingId !== evt.id" class="event-view" @click="startEdit(evt)" @contextmenu.prevent="toggleCompleted(evt)">
             <div class="event-color-bar" :style="{ background: evt.color }"></div>
             <div class="event-info">
               <div class="event-title">{{ evt.title }}</div>
@@ -78,6 +78,7 @@
               </div>
               <div v-if="evt.description" class="event-desc">{{ evt.description }}</div>
             </div>
+            <span v-if="evt.completed" class="completed-badge">✓</span>
             <button class="btn-delete" @click.stop="confirmDelete(evt.id)">
               <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor">
                 <path d="M5.5 5.5a.5.5 0 0 1 .5.5v3a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 0a.5.5 0 0 1 .5.5v3a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5z"/>
@@ -127,6 +128,7 @@ const props = defineProps<{
   events: Event[]
   lunar: LunarDay | undefined
   solarTerm: string
+  quickAddDate: string
 }>()
 
 const emit = defineEmits<{
@@ -174,6 +176,17 @@ watch(() => props.date, () => {
   editingId.value = ''
 })
 
+watch(() => props.quickAddDate, (val) => {
+  if (val) {
+    showForm.value = true
+    resetForm()
+  }
+})
+
+function toggleCompleted(evt: Event) {
+  emit('update', { ...evt, completed: !evt.completed })
+}
+
 function submitForm() {
   if (!form.title.trim()) return
   emit('create', {
@@ -183,6 +196,7 @@ function submitForm() {
     startTime: form.startTime,
     endTime: form.endTime,
     color: form.color,
+    completed: false,
   })
   resetForm()
 }
@@ -523,5 +537,21 @@ function confirmDelete(id: string) {
 .list-leave-to {
   opacity: 0;
   transform: translateX(10px);
+}
+
+.event-card.completed .event-view {
+  opacity: 0.5;
+}
+
+.event-card.completed .event-title {
+  text-decoration: line-through;
+}
+
+.completed-badge {
+  color: #6BCB77;
+  font-size: 14px;
+  font-weight: 700;
+  flex-shrink: 0;
+  padding: 0 2px;
 }
 </style>

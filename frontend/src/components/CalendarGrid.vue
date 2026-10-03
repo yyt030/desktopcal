@@ -14,7 +14,8 @@
         :key="i"
         :day="day"
         :selected="day.solarDate === selectedDate"
-        @click="$emit('selectDay', day.solarDate)"
+        @select="$emit('selectDay', $event)"
+        @quick-add="$emit('quickAdd', $event)"
       />
     </div>
   </div>
@@ -31,6 +32,7 @@ defineProps<{
 
 defineEmits<{
   selectDay: [date: string]
+  quickAdd: [date: string]
 }>()
 
 const weekdays = ['日', '一', '二', '三', '四', '五', '六']

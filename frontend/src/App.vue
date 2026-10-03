@@ -12,12 +12,14 @@
         :days="days"
         :selected-date="selectedDate"
         @select-day="onSelectDay"
+        @quick-add="onQuickAdd"
       />
       <EventPanel
         :date="selectedDate"
         :events="selectedEvents"
         :lunar="selectedLunar"
         :solar-term="selectedSolarTerm"
+        :quick-add-date="quickAddDate"
         @create="onCreateEvent"
         @update="onUpdateEvent"
         @delete="onDeleteEvent"
@@ -27,7 +29,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, watch, nextTick } from 'vue'
 import AppHeader from './components/AppHeader.vue'
 import CalendarGrid from './components/CalendarGrid.vue'
 import EventPanel from './components/EventPanel.vue'
@@ -39,6 +41,7 @@ const currentYear = ref(now.getFullYear())
 const currentMonth = ref(now.getMonth() + 1)
 const days = ref<DayInfo[]>([])
 const selectedDate = ref(formatDate(now))
+const quickAddDate = ref('')
 
 const selectedDay = computed(() =>
   days.value.find(d => d.solarDate === selectedDate.value)
@@ -80,10 +83,19 @@ function onSelectDay(date: string) {
   selectedDate.value = date
 }
 
+function onQuickAdd(date: string) {
+  selectedDate.value = date
+  quickAddDate.value = ''
+  nextTick(() => {
+    quickAddDate.value = date
+  })
+}
+
 async function onCreateEvent(event: Omit<Event, 'id' | 'createdAt' | 'updatedAt'>) {
   const created = await createEvent({
     ...event,
     id: '',
+    completed: false,
     createdAt: '',
     updatedAt: '',
   })

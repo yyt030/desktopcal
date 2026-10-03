@@ -8,6 +8,7 @@ type Event struct {
 	StartTime   string `json:"startTime"`
 	EndTime     string `json:"endTime"`
 	Color       string `json:"color"`
+	Completed   bool   `json:"completed"`
 	CreatedAt   string `json:"createdAt"`
 	UpdatedAt   string `json:"updatedAt"`
 }

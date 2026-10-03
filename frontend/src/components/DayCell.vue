@@ -6,6 +6,8 @@
       selected,
       'other-month': !day.isCurrent,
     }"
+    @click="$emit('select', day.solarDate)"
+    @dblclick="$emit('quickAdd', day.solarDate)"
   >
     <div class="day-number-row">
       <span class="day-number">{{ dayNum }}</span>

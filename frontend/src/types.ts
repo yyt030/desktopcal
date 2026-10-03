@@ -6,6 +6,7 @@ export interface Event {
   startTime: string
   endTime: string
   color: string
+  completed: boolean
   createdAt: string
   updatedAt: string
 }

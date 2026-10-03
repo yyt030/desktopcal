@@ -54,6 +54,7 @@ func (d *DB) migrate() error {
 			start_time TEXT DEFAULT '',
 			end_time TEXT DEFAULT '',
 			color TEXT DEFAULT '#4A90D9',
+			completed INTEGER DEFAULT 0,
 			created_at TEXT NOT NULL,
 			updated_at TEXT NOT NULL
 		);
@@ -62,13 +63,15 @@ func (d *DB) migrate() error {
 	if err != nil {
 		return fmt.Errorf("数据库迁移失败: %w", err)
 	}
+
+	d.conn.Exec(`ALTER TABLE events ADD COLUMN completed INTEGER DEFAULT 0`)
 	return nil
 }
 
 func (d *DB) GetEventsByDate(date string) ([]*model.Event, error) {
 	rows, err := d.conn.Query(
-		`SELECT id, title, description, date, start_time, end_time, color, created_at, updated_at
-		 FROM events WHERE date = ? ORDER BY start_time`, date)
+		`SELECT id, title, description, date, start_time, end_time, color, completed, created_at, updated_at
+		 FROM events WHERE date = ? ORDER BY completed ASC, start_time`, date)
 	if err != nil {
 		return nil, err
 	}
@@ -77,10 +80,12 @@ func (d *DB) GetEventsByDate(date string) ([]*model.Event, error) {
 	var events []*model.Event
 	for rows.Next() {
 		e := &model.Event{}
+		var completed int
 		if err := rows.Scan(&e.ID, &e.Title, &e.Description, &e.Date,
-			&e.StartTime, &e.EndTime, &e.Color, &e.CreatedAt, &e.UpdatedAt); err != nil {
+			&e.StartTime, &e.EndTime, &e.Color, &completed, &e.CreatedAt, &e.UpdatedAt); err != nil {
 			return nil, err
 		}
+		e.Completed = completed == 1
 		events = append(events, e)
 	}
 	if events == nil {
@@ -94,8 +99,8 @@ func (d *DB) GetEventsByMonth(year, month int) ([]*model.Event, error) {
 	next := time.Date(year, time.Month(month)+1, 1, 0, 0, 0, 0, time.Local)
 	end := next.AddDate(0, 0, -1).Format("2006-01-02")
 	rows, err := d.conn.Query(
-		`SELECT id, title, description, date, start_time, end_time, color, created_at, updated_at
-		 FROM events WHERE date >= ? AND date <= ? ORDER BY date, start_time`, start, end)
+		`SELECT id, title, description, date, start_time, end_time, color, completed, created_at, updated_at
+		 FROM events WHERE date >= ? AND date <= ? ORDER BY date, completed ASC, start_time`, start, end)
 	if err != nil {
 		return nil, err
 	}
@@ -104,10 +109,12 @@ func (d *DB) GetEventsByMonth(year, month int) ([]*model.Event, error) {
 	var events []*model.Event
 	for rows.Next() {
 		e := &model.Event{}
+		var completed int
 		if err := rows.Scan(&e.ID, &e.Title, &e.Description, &e.Date,
-			&e.StartTime, &e.EndTime, &e.Color, &e.CreatedAt, &e.UpdatedAt); err != nil {
+			&e.StartTime, &e.EndTime, &e.Color, &completed, &e.CreatedAt, &e.UpdatedAt); err != nil {
 			return nil, err
 		}
+		e.Completed = completed == 1
 		events = append(events, e)
 	}
 	if events == nil {
@@ -122,11 +129,16 @@ func (d *DB) CreateEvent(event *model.Event) (*model.Event, error) {
 	event.CreatedAt = now
 	event.UpdatedAt = now
 
+	completed := 0
+	if event.Completed {
+		completed = 1
+	}
+
 	_, err := d.conn.Exec(
-		`INSERT INTO events (id, title, description, date, start_time, end_time, color, created_at, updated_at)
-		 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+		`INSERT INTO events (id, title, description, date, start_time, end_time, color, completed, created_at, updated_at)
+		 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
 		event.ID, event.Title, event.Description, event.Date,
-		event.StartTime, event.EndTime, event.Color, event.CreatedAt, event.UpdatedAt)
+		event.StartTime, event.EndTime, event.Color, completed, event.CreatedAt, event.UpdatedAt)
 	if err != nil {
 		return nil, err
 	}
@@ -135,11 +147,15 @@ func (d *DB) CreateEvent(event *model.Event) (*model.Event, error) {
 
 func (d *DB) UpdateEvent(event *model.Event) error {
 	event.UpdatedAt = time.Now().Format(time.RFC3339)
+	completed := 0
+	if event.Completed {
+		completed = 1
+	}
 	_, err := d.conn.Exec(
-		`UPDATE events SET title=?, description=?, date=?, start_time=?, end_time=?, color=?, updated_at=?
+		`UPDATE events SET title=?, description=?, date=?, start_time=?, end_time=?, color=?, completed=?, updated_at=?
 		 WHERE id=?`,
 		event.Title, event.Description, event.Date,
-		event.StartTime, event.EndTime, event.Color, event.UpdatedAt, event.ID)
+		event.StartTime, event.EndTime, event.Color, completed, event.UpdatedAt, event.ID)
 	return err
 }
 
