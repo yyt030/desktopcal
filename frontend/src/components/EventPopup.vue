@@ -39,11 +39,6 @@
               </div>
             </div>
             <div class="popup-header-right">
-              <button class="btn-add" @click="showForm = true" title="添加事件">
-                <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor">
-                  <path d="M7 1a.75.75 0 0 1 .75.75v4.5h4.5a.75.75 0 0 1 0 1.5h-4.5v4.5a.75.75 0 0 1-1.5 0v-4.5h-4.5a.75.75 0 0 1 0-1.5h4.5v-4.5A.75.75 0 0 1 7 1z"/>
-                </svg>
-              </button>
               <button class="btn-close" @click="handleClose" title="关闭">
                 <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor">
                   <path d="M3.7 3.7a.5.5 0 0 1 .7 0L7 6.3l2.6-2.6a.5.5 0 0 1 .7.7L7.7 7l2.6 2.6a.5.5 0 0 1-.7.7L7 7.7l-2.6 2.6a.5.5 0 0 1-.7-.7L6.3 7 3.7 4.4a.5.5 0 0 1 0-.7z"/>
@@ -53,78 +48,23 @@
           </div>
 
           <div class="popup-body">
-            <div v-if="showForm" class="event-form">
-              <textarea
-                v-model="formText"
-                class="form-input form-text"
-                placeholder="输入事件内容，按 Ctrl+Enter 保存"
-                rows="3"
-                @keydown.ctrl.enter="submitForm"
-                @keydown.meta.enter="submitForm"
-              ></textarea>
-              <div class="form-actions">
-                <button class="btn-form btn-cancel" @click="cancelForm">取消</button>
-                <button class="btn-form btn-save" @click="submitForm">保存</button>
-              </div>
+            <div class="line-numbers" ref="lineNumbersRef">
+              <div v-for="n in lineCount" :key="n" class="line-num">{{ n }}.</div>
             </div>
+            <textarea
+              ref="textareaRef"
+              v-model="text"
+              class="events-textarea"
+              placeholder="输入日程，每行一条..."
+              :rows="Math.max(lineCount, 5)"
+              @scroll="syncScroll"
+              @keydown="handleKeydown"
+              @contextmenu="handleContextMenu"
+            ></textarea>
+          </div>
 
-            <div v-if="!showForm && events.length === 0" class="no-events">
-              暂无日程
-            </div>
-
-            <TransitionGroup name="list" tag="div" class="events-list">
-              <div
-                v-for="evt in events"
-                :key="evt.id"
-                class="event-card"
-                :class="{ editing: editingId === evt.id, completed: evt.completed }"
-              >
-                <div v-if="editingId !== evt.id" class="event-view" @click="startEdit(evt)" @contextmenu.prevent="toggleCompleted(evt)">
-                  <div class="event-color-bar" :style="{ background: evt.color }"></div>
-                  <div class="event-info">
-                    <div class="event-title">{{ evt.title }}</div>
-                    <div v-if="evt.startTime" class="event-time">
-                      {{ evt.startTime }}<span v-if="evt.endTime"> - {{ evt.endTime }}</span>
-                    </div>
-                    <div v-if="evt.description" class="event-desc">{{ evt.description }}</div>
-                  </div>
-                  <span v-if="evt.completed" class="completed-badge">✓</span>
-                  <button class="btn-delete" @click.stop="confirmDelete(evt.id)">
-                    <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor">
-                      <path d="M5.5 5.5a.5.5 0 0 1 .5.5v3a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 0a.5.5 0 0 1 .5.5v3a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5z"/>
-                      <path fill-rule="evenodd" d="M4.5 2A1.5 1.5 0 0 1 6 .5h2A1.5 1.5 0 0 1 9.5 2h3a.5.5 0 0 1 0 1h-.538l-.853 10.66A2 2 0 0 1 9.115 15H4.885a2 2 0 0 1-1.994-1.84L2.038 3H1.5a.5.5 0 0 1 0-1h3zM6 1.5A.5.5 0 0 0 5.5 2h3a.5.5 0 0 0-.5-.5h-2zM3.05 3l.845 10.538a1 1 0 0 0 .997.962h4.216a1 1 0 0 0 .997-.962L10.95 3h-7.9z"/>
-                    </svg>
-                  </button>
-                </div>
-                <div v-else class="event-edit">
-                  <input v-model="editForm.title" class="form-input" placeholder="标题" />
-                  <div class="form-row">
-                    <input v-model="editForm.startTime" type="time" class="form-input form-time" />
-                    <span class="form-sep">至</span>
-                    <input v-model="editForm.endTime" type="time" class="form-input form-time" />
-                  </div>
-                  <textarea
-                    v-model="editForm.description"
-                    class="form-input form-desc"
-                    rows="2"
-                  ></textarea>
-                  <div class="form-colors">
-                    <button
-                      v-for="c in colors"
-                      :key="c"
-                      class="color-btn"
-                      :class="{ active: editForm.color === c }"
-                      :style="{ background: c }"
-                      @click="editForm.color = c"
-                    />
-                  </div>
-                  <div class="form-actions">
-                    <button class="btn-form btn-cancel" @click="editingId = ''">取消</button>
-                    <button class="btn-form btn-save" @click="submitEdit">保存</button>
-                  </div>
-                </div>
-              </div>
-            </TransitionGroup>
+          <div class="popup-footer">
+            <span class="footer-hint">右键行首加 ✓ 标记完成</span>
           </div>
         </div>
       </div>
@@ -133,7 +73,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, reactive } from 'vue'
+import { ref, computed, watch, nextTick } from 'vue'
 import type { Event, LunarDay } from '../types'
 
 const props = defineProps<{
@@ -148,27 +88,17 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   close: []
-  create: [event: Omit<Event, 'id' | 'createdAt' | 'updatedAt'>]
-  update: [event: Event]
-  delete: [id: string]
+  saveLines: [lines: { title: string; completed: boolean }[]]
   setBgColor: [color: string]
 }>()
 
-const colors = ['#4A90D9', '#E87878', '#6BCB77', '#F0A050', '#9B72CF', '#4ECDC4']
 const bgColors = ['#4A90D9', '#E87878', '#6BCB77', '#F0A050', '#9B72CF', '#4ECDC4']
 const weekdays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六']
 
-const showForm = ref(false)
-const editingId = ref('')
-const formText = ref('')
-
-const editForm = reactive({
-  title: '',
-  description: '',
-  startTime: '',
-  endTime: '',
-  color: '#4A90D9',
-})
+const text = ref('')
+const textareaRef = ref<HTMLTextAreaElement>()
+const lineNumbersRef = ref<HTMLDivElement>()
+const dirty = ref(false)
 
 const displayDay = computed(() => {
   if (!props.date) return ''
@@ -182,83 +112,126 @@ const weekdayName = computed(() => {
   return weekdays[d.getDay()]
 })
 
-watch(() => props.date, () => {
-  showForm.value = false
-  editingId.value = ''
+const lineCount = computed(() => {
+  if (!text.value) return 1
+  const count = text.value.split('\n').length
+  return Math.max(count, 1)
 })
 
-watch(() => props.quickAddDate, (val) => {
-  if (val) {
-    showForm.value = true
-    resetForm()
+function eventsToText(events: Event[]): string {
+  if (events.length === 0) return ''
+  return events.map(e => {
+    const prefix = e.completed ? '✓ ' : ''
+    return prefix + e.title
+  }).join('\n')
+}
+
+function parseLines(txt: string): { title: string; completed: boolean }[] {
+  return txt.split('\n')
+    .map(line => {
+      const trimmed = line.trim()
+      if (!trimmed) return null
+      if (trimmed.startsWith('✓ ') || trimmed.startsWith('✓')) {
+        return { title: trimmed.replace(/^✓\s*/, '').trim(), completed: true }
+      }
+      return { title: trimmed, completed: false }
+    })
+    .filter((l): l is { title: string; completed: boolean } => l !== null && l.title !== '')
+}
+
+function syncScroll() {
+  if (lineNumbersRef.value && textareaRef.value) {
+    lineNumbersRef.value.scrollTop = textareaRef.value.scrollTop
   }
-})
-
-function toggleCompleted(evt: Event) {
-  emit('update', { ...evt, completed: !evt.completed })
 }
 
-function submitForm() {
-  if (!formText.value.trim()) return
-  emit('create', {
-    title: formText.value.trim(),
-    description: '',
-    date: props.date,
-    startTime: '',
-    endTime: '',
-    color: '#4A90D9',
-    completed: false,
-  })
-  resetForm()
+function handleKeydown(e: KeyboardEvent) {
+  if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+    e.preventDefault()
+    saveAndClose()
+  }
 }
 
-function cancelForm() {
-  if (formText.value.trim()) {
-    submitForm()
+function handleContextMenu(e: MouseEvent) {
+  e.preventDefault()
+  if (!textareaRef.value) return
+  const ta = textareaRef.value
+  const pos = ta.selectionStart
+  const lines = text.value.split('\n')
+  let charCount = 0
+  let lineIndex = 0
+  for (let i = 0; i < lines.length; i++) {
+    if (charCount + lines[i].length >= pos) {
+      lineIndex = i
+      break
+    }
+    charCount += lines[i].length + 1
+    lineIndex = i
+  }
+  const line = lines[lineIndex]
+  if (line.startsWith('✓ ')) {
+    lines[lineIndex] = line.slice(2)
+  } else if (line.startsWith('✓')) {
+    lines[lineIndex] = line.slice(1).trimStart()
   } else {
-    resetForm()
+    lines[lineIndex] = '✓ ' + line
   }
+  text.value = lines.join('\n')
 }
 
-function handleClose() {
-  if (showForm.value && formText.value.trim()) {
-    submitForm()
+function saveAndClose() {
+  if (dirty.value) {
+    const lines = parseLines(text.value)
+    emit('saveLines', lines)
+    dirty.value = false
   }
   emit('close')
 }
 
-function resetForm() {
-  formText.value = ''
-  showForm.value = false
+function handleClose() {
+  saveAndClose()
 }
 
-function startEdit(evt: Event) {
-  editingId.value = evt.id
-  editForm.title = evt.title
-  editForm.description = evt.description
-  editForm.startTime = evt.startTime
-  editForm.endTime = evt.endTime
-  editForm.color = evt.color
-}
+watch(() => props.date, () => {
+  text.value = eventsToText(props.events)
+  dirty.value = false
+})
 
-function submitEdit() {
-  if (!editForm.title.trim()) return
-  const original = props.events.find(e => e.id === editingId.value)
-  if (!original) return
-  emit('update', {
-    ...original,
-    title: editForm.title.trim(),
-    description: editForm.description.trim(),
-    startTime: editForm.startTime,
-    endTime: editForm.endTime,
-    color: editForm.color,
-  })
-  editingId.value = ''
-}
+watch(() => props.visible, (val) => {
+  if (val) {
+    nextTick(() => {
+      textareaRef.value?.focus()
+    })
+  }
+})
 
-function confirmDelete(id: string) {
-  emit('delete', id)
-}
+watch(() => props.events, (newEvents) => {
+  if (!dirty.value) {
+    text.value = eventsToText(newEvents)
+  }
+}, { deep: true })
+
+watch(() => props.quickAddDate, (val) => {
+  if (val) {
+    nextTick(() => {
+      textareaRef.value?.focus()
+      const len = text.value.length
+      if (len > 0 && !text.value.endsWith('\n')) {
+        text.value += '\n'
+      }
+      nextTick(() => {
+        if (textareaRef.value) {
+          textareaRef.value.selectionStart = textareaRef.value.value.length
+          textareaRef.value.selectionEnd = textareaRef.value.value.length
+        }
+      })
+    })
+  }
+})
+
+watch(text, () => {
+  dirty.value = true
+})
 </script>
 
 <style scoped>
@@ -383,7 +356,7 @@ function confirmDelete(id: string) {
   background: rgba(255, 255, 255, 0.15);
 }
 
-.btn-add, .btn-close {
+.btn-close {
   width: 28px;
   height: 28px;
   display: flex;
@@ -391,21 +364,8 @@ function confirmDelete(id: string) {
   justify-content: center;
   border-radius: 6px;
   color: rgba(255, 255, 255, 0.6);
-  transition: all 0.2s;
-}
-
-.btn-add {
-  background: #4A90D9;
-  color: #fff;
-}
-
-.btn-add:hover {
-  background: #3a7bc8;
-  transform: scale(1.05);
-}
-
-.btn-close {
   background: rgba(255, 255, 255, 0.06);
+  transition: all 0.2s;
 }
 
 .btn-close:hover {
@@ -415,217 +375,55 @@ function confirmDelete(id: string) {
 
 .popup-body {
   flex: 1;
-  padding: 12px;
+  display: flex;
   overflow-y: auto;
   min-height: 0;
+  padding: 8px 0;
 }
 
-.event-form, .event-edit {
-  background: rgba(255, 255, 255, 0.04);
-  border-radius: 8px;
-  padding: 12px;
-  margin-bottom: 10px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+.line-numbers {
+  flex-shrink: 0;
+  padding: 0 4px 0 12px;
+  overflow: hidden;
+  user-select: none;
 }
 
-.form-input {
-  width: 100%;
-  padding: 8px 10px;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 6px;
+.line-num {
+  font-size: 13px;
+  line-height: 1.6;
+  height: 1.6em;
+  color: rgba(255, 255, 255, 0.25);
+  text-align: right;
+  min-width: 20px;
+  font-variant-numeric: tabular-nums;
+}
+
+.events-textarea {
+  flex: 1;
+  background: transparent;
+  border: none;
   color: #fff;
   font-size: 13px;
-  transition: border-color 0.2s;
-}
-
-.form-input:focus {
-  border-color: #4A90D9;
+  line-height: 1.6;
+  resize: none;
   outline: none;
+  padding: 0 12px 0 4px;
+  font-family: inherit;
+  min-height: 120px;
 }
 
-.form-input::placeholder {
-  color: rgba(255, 255, 255, 0.3);
+.events-textarea::placeholder {
+  color: rgba(255, 255, 255, 0.2);
 }
 
-.form-row {
-  display: flex;
-  align-items: center;
-  gap: 6px;
+.popup-footer {
+  padding: 6px 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
 }
 
-.form-time {
-  flex: 1;
-}
-
-.form-sep {
-  font-size: 12px;
-  color: rgba(255, 255, 255, 0.4);
-}
-
-.form-desc {
-  resize: none;
-  min-height: 40px;
-}
-
-.form-text {
-  resize: none;
-  min-height: 60px;
-  font-size: 14px;
-  line-height: 1.5;
-}
-
-.form-colors {
-  display: flex;
-  gap: 6px;
-}
-
-.color-btn {
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  border: 2px solid transparent;
-  transition: all 0.15s;
-  cursor: pointer;
-}
-
-.color-btn.active {
-  border-color: #fff;
-  transform: scale(1.15);
-}
-
-.form-actions {
-  display: flex;
-  gap: 8px;
-  justify-content: flex-end;
-}
-
-.btn-form {
-  padding: 6px 14px;
-  border-radius: 6px;
-  font-size: 12px;
-  font-weight: 500;
-}
-
-.btn-cancel {
-  color: rgba(255, 255, 255, 0.6);
-}
-
-.btn-cancel:hover {
-  color: #fff;
-}
-
-.btn-save {
-  background: #4A90D9;
-  color: #fff;
-}
-
-.btn-save:hover {
-  background: #3a7bc8;
-}
-
-.no-events {
-  text-align: center;
-  padding: 30px 0;
-  color: rgba(255, 255, 255, 0.4);
-  font-size: 13px;
-}
-
-.events-list {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.event-card {
-  border-radius: 8px;
-  overflow: hidden;
-  transition: all 0.2s;
-}
-
-.event-view {
-  display: flex;
-  gap: 10px;
-  padding: 10px;
-  background: rgba(255, 255, 255, 0.03);
-  border-radius: 8px;
-  cursor: pointer;
-  transition: background 0.15s;
-}
-
-.event-view:hover {
-  background: rgba(255, 255, 255, 0.06);
-}
-
-.event-color-bar {
-  width: 3px;
-  border-radius: 2px;
-  flex-shrink: 0;
-}
-
-.event-info {
-  flex: 1;
-  min-width: 0;
-}
-
-.event-title {
-  font-size: 13px;
-  font-weight: 500;
-  color: #fff;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.event-time {
+.footer-hint {
   font-size: 11px;
-  color: rgba(255, 255, 255, 0.6);
-  margin-top: 2px;
-}
-
-.event-desc {
-  font-size: 11px;
-  color: rgba(255, 255, 255, 0.4);
-  margin-top: 2px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.btn-delete {
-  opacity: 0;
-  padding: 4px;
-  border-radius: 4px;
-  color: rgba(255, 255, 255, 0.4);
-  transition: all 0.15s;
-  flex-shrink: 0;
-}
-
-.event-view:hover .btn-delete {
-  opacity: 1;
-}
-
-.btn-delete:hover {
-  color: #e87878;
-  background: rgba(232, 120, 120, 0.1);
-}
-
-.event-card.completed .event-view {
-  opacity: 0.5;
-}
-
-.event-card.completed .event-title {
-  text-decoration: line-through;
-}
-
-.completed-badge {
-  color: #6BCB77;
-  font-size: 14px;
-  font-weight: 700;
-  flex-shrink: 0;
-  padding: 0 2px;
+  color: rgba(255, 255, 255, 0.25);
 }
 
 .popup-enter-active, .popup-leave-active {
@@ -638,19 +436,5 @@ function confirmDelete(id: string) {
 
 .popup-enter-from .popup, .popup-leave-to .popup {
   transform: scale(0.95) translateY(10px);
-}
-
-.list-enter-active, .list-leave-active {
-  transition: all 0.25s ease;
-}
-
-.list-enter-from {
-  opacity: 0;
-  transform: translateX(-10px);
-}
-
-.list-leave-to {
-  opacity: 0;
-  transform: translateX(10px);
 }
 </style>

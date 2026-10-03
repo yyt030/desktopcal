@@ -26,9 +26,7 @@
       :quick-add-date="quickAddDate"
       :current-bg-color="selectedBgColor"
       @close="showPopup = false"
-      @create="onCreateEvent"
-      @update="onUpdateEvent"
-      @delete="onDeleteEvent"
+      @save-lines="onSaveLines"
       @set-bg-color="onSetBgColor"
     />
   </div>
@@ -40,7 +38,7 @@ import AppHeader from './components/AppHeader.vue'
 import CalendarGrid from './components/CalendarGrid.vue'
 import EventPopup from './components/EventPopup.vue'
 import { getMonthDays, createEvent, updateEvent, deleteEvent, setDayBackground, exportData, importData } from './api'
-import type { DayInfo, Event } from './types'
+import type { DayInfo } from './types'
 
 const now = new Date()
 const currentYear = ref(now.getFullYear())
@@ -89,6 +87,7 @@ function goToday() {
 
 function onSelectDay(date: string) {
   selectedDate.value = date
+  showPopup.value = true
 }
 
 function onQuickAdd(date: string) {
@@ -100,25 +99,46 @@ function onQuickAdd(date: string) {
   })
 }
 
-async function onCreateEvent(event: Omit<Event, 'id' | 'createdAt' | 'updatedAt'>) {
-  const created = await createEvent({
-    ...event,
-    id: '',
-    completed: false,
-    createdAt: '',
-    updatedAt: '',
-  })
-  await loadMonth()
-  selectedDate.value = created.date
-}
+async function onSaveLines(lines: { title: string; completed: boolean }[]) {
+  const existing = [...selectedEvents.value]
+  const date = selectedDate.value
 
-async function onUpdateEvent(event: Event) {
-  await updateEvent(event)
-  await loadMonth()
-}
+  const matched = new Set<string>()
+  const toCreate: { title: string; completed: boolean }[] = []
 
-async function onDeleteEvent(id: string) {
-  await deleteEvent(id)
+  for (const line of lines) {
+    const found = existing.find(e => e.title === line.title && !matched.has(e.id))
+    if (found) {
+      matched.add(found.id)
+      if (found.completed !== line.completed) {
+        await updateEvent({ ...found, completed: line.completed })
+      }
+    } else {
+      toCreate.push(line)
+    }
+  }
+
+  for (const e of existing) {
+    if (!matched.has(e.id)) {
+      await deleteEvent(e.id)
+    }
+  }
+
+  for (const line of toCreate) {
+    await createEvent({
+      id: '',
+      title: line.title,
+      description: '',
+      date,
+      startTime: '',
+      endTime: '',
+      color: '#4A90D9',
+      completed: line.completed,
+      createdAt: '',
+      updatedAt: '',
+    })
+  }
+
   await loadMonth()
 }
 
