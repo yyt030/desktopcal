@@ -44,12 +44,12 @@ func (a *App) GetMonthDays(year, month int) ([]*model.DayInfo, error) {
 	lastDayOffset := (int(end.Weekday()) - firstDayOfWeek + 7) % 7
 	trailing := (6 - lastDayOffset) % 7
 	totalDays := offset + end.Day() + trailing
-	rows := totalDays / 7
 
 	todayRow := 0
 	if today.Year() == year && int(today.Month()) == month {
 		todayRow = (offset + today.Day() - 1) / 7
 	}
+	rows := totalDays / 7
 	leading := rows/2 - todayRow
 	if leading < 0 {
 		leading = 0
@@ -58,8 +58,8 @@ func (a *App) GetMonthDays(year, month int) ([]*model.DayInfo, error) {
 		leading = rows
 	}
 	gridStart := naturalStart.AddDate(0, 0, -leading*7)
-
 	gridEnd := gridStart.AddDate(0, 0, totalDays-1)
+
 	allEvents, err := a.db.GetEventsByDateRange(gridStart.Format("2006-01-02"), gridEnd.Format("2006-01-02"))
 	if err != nil {
 		allEvents = []*model.Event{}

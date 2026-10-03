@@ -18,15 +18,6 @@
       <span v-if="showSolarTerm && day.solarTerm" class="solar-term">{{ day.solarTerm }}</span>
       <span v-else-if="showLunar" class="lunar-text">{{ lunarDisplay }}</span>
     </div>
-    <div v-if="day.events.length > 0" class="events-row">
-      <span
-        v-for="evt in day.events.slice(0, 2)"
-        :key="evt.id"
-        class="event-dot"
-        :style="{ background: evt.color }"
-      ></span>
-      <span v-if="day.events.length > 2" class="more-count">+{{ day.events.length - 2 }}</span>
-    </div>
     <div v-if="day.events.length > 0" class="events-text">
       <div
         v-for="evt in day.events.slice(0, 3)"
@@ -143,25 +134,6 @@ const lunarDisplay = computed(() => {
 .solar-term {
   color: #e8a0a0;
   font-weight: 500;
-}
-
-.events-row {
-  display: flex;
-  align-items: center;
-  gap: 3px;
-  margin-top: 1px;
-}
-
-.event-dot {
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-
-.more-count {
-  font-size: 9px;
-  color: var(--text-muted);
 }
 
 .events-text {
