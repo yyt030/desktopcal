@@ -25,10 +25,8 @@
       :lunar="selectedLunar"
       :solar-term="selectedSolarTerm"
       :quick-add-date="quickAddDate"
-      :current-bg-color="selectedBgColor"
       @close="showPopup = false"
       @save-lines="onSaveLines"
-      @set-bg-color="onSetBgColor"
     />
     <SettingsPopup
       :visible="showSettings"
@@ -45,7 +43,7 @@ import AppHeader from './components/AppHeader.vue'
 import CalendarGrid from './components/CalendarGrid.vue'
 import EventPopup from './components/EventPopup.vue'
 import SettingsPopup from './components/SettingsPopup.vue'
-import { getMonthDays, createEvent, updateEvent, deleteEvent, setDayBackground, exportData, importData, getSettings, saveSettings } from './api'
+import { getMonthDays, createEvent, updateEvent, deleteEvent, exportData, importData, getSettings, saveSettings } from './api'
 import { WindowSetSize, WindowSetAlwaysOnTop } from '../wailsjs/runtime/runtime'
 import type { DayInfo, Settings } from './types'
 
@@ -63,6 +61,7 @@ const currentSettings = ref<Settings>({
   height: 750,
   theme: 'dark',
   alwaysTop: true,
+  fontSize: 13,
 })
 
 const selectedDay = computed(() =>
@@ -71,7 +70,6 @@ const selectedDay = computed(() =>
 const selectedEvents = computed(() => selectedDay.value?.events ?? [])
 const selectedLunar = computed(() => selectedDay.value?.lunar)
 const selectedSolarTerm = computed(() => selectedDay.value?.solarTerm ?? '')
-const selectedBgColor = computed(() => selectedDay.value?.bgColor ?? '')
 
 async function loadMonth() {
   days.value = await getMonthDays(currentYear.value, currentMonth.value)
@@ -154,11 +152,6 @@ async function onSaveLines(lines: { title: string; completed: boolean }[]) {
   await loadMonth()
 }
 
-async function onSetBgColor(color: string) {
-  await setDayBackground(selectedDate.value, color)
-  await loadMonth()
-}
-
 async function onExport() {
   const data = await exportData()
   const blob = new Blob([data], { type: 'application/json' })
@@ -230,6 +223,7 @@ function applySettings(s: Settings) {
     root.style.setProperty(k, v)
   }
   root.style.setProperty('--app-opacity', String(s.opacity / 100))
+  root.style.setProperty('--editor-font-size', s.fontSize + 'px')
   WindowSetSize(s.width, s.height)
   WindowSetAlwaysOnTop(s.alwaysTop)
 }

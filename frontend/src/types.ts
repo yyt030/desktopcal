@@ -38,4 +38,5 @@ export interface Settings {
   height: number
   theme: string
   alwaysTop: boolean
+  fontSize: number
 }

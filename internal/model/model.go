@@ -45,4 +45,5 @@ type Settings struct {
 	Height    int    `json:"height"`
 	Theme     string `json:"theme"`
 	AlwaysTop bool   `json:"alwaysTop"`
+	FontSize  int    `json:"fontSize"`
 }

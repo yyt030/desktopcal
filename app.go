@@ -153,11 +153,12 @@ func (a *App) ImportData(jsonStr string) error {
 
 func (a *App) GetSettings() *model.Settings {
 	s := &model.Settings{
-		Opacity:   100,
-		Width:     1100,
-		Height:    750,
-		Theme:     "dark",
-		AlwaysTop: true,
+		Opacity:    100,
+		Width:      1100,
+		Height:     750,
+		Theme:      "dark",
+		AlwaysTop:  true,
+		FontSize:   13,
 	}
 	if v, _ := a.db.GetSetting("opacity"); v != "" {
 		fmt.Sscanf(v, "%d", &s.Opacity)
@@ -174,6 +175,9 @@ func (a *App) GetSettings() *model.Settings {
 	if v, _ := a.db.GetSetting("always_top"); v != "" {
 		s.AlwaysTop = v == "true"
 	}
+	if v, _ := a.db.GetSetting("font_size"); v != "" {
+		fmt.Sscanf(v, "%d", &s.FontSize)
+	}
 	return s
 }
 
@@ -182,6 +186,7 @@ func (a *App) SaveSettings(s *model.Settings) error {
 	a.db.SetSetting("width", fmt.Sprintf("%d", s.Width))
 	a.db.SetSetting("height", fmt.Sprintf("%d", s.Height))
 	a.db.SetSetting("theme", s.Theme)
+	a.db.SetSetting("font_size", fmt.Sprintf("%d", s.FontSize))
 	if s.AlwaysTop {
 		a.db.SetSetting("always_top", "true")
 	} else {

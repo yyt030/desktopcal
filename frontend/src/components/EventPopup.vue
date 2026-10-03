@@ -16,27 +16,6 @@
               <div v-if="solarTerm" class="popup-solar-term">
                 {{ solarTerm }}
               </div>
-              <div class="popup-bg-colors">
-                <span class="bg-label">背景</span>
-                <button
-                  class="bg-color-btn none"
-                  :class="{ active: !currentBgColor }"
-                  @click="emit('setBgColor', '')"
-                  title="默认"
-                >
-                  <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor">
-                    <path d="M2 2l6 6M8 2l-6 6" stroke="currentColor" stroke-width="1.5" fill="none"/>
-                  </svg>
-                </button>
-                <button
-                  v-for="c in bgColors"
-                  :key="c"
-                  class="bg-color-btn"
-                  :class="{ active: currentBgColor === c }"
-                  :style="{ background: c }"
-                  @click="emit('setBgColor', c)"
-                />
-              </div>
             </div>
             <div class="popup-header-right">
               <button class="btn-close" @click="handleClose" title="关闭">
@@ -83,16 +62,13 @@ const props = defineProps<{
   lunar: LunarDay | undefined
   solarTerm: string
   quickAddDate: string
-  currentBgColor: string
 }>()
 
 const emit = defineEmits<{
   close: []
   saveLines: [lines: { title: string; completed: boolean }[]]
-  setBgColor: [color: string]
 }>()
 
-const bgColors = ['#4A90D9', '#E87878', '#6BCB77', '#F0A050', '#9B72CF', '#4ECDC4']
 const weekdays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六']
 
 const text = ref('')
@@ -317,45 +293,6 @@ watch(text, () => {
   font-weight: 500;
 }
 
-.popup-bg-colors {
-  margin-top: 8px;
-  display: flex;
-  align-items: center;
-  gap: 5px;
-}
-
-.bg-label {
-  font-size: 11px;
-  color: rgba(255, 255, 255, 0.4);
-  margin-right: 2px;
-}
-
-.bg-color-btn {
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  border: 2px solid transparent;
-  transition: all 0.15s;
-  cursor: pointer;
-}
-
-.bg-color-btn.active {
-  border-color: #fff;
-  transform: scale(1.2);
-}
-
-.bg-color-btn.none {
-  background: rgba(255, 255, 255, 0.08);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: rgba(255, 255, 255, 0.4);
-}
-
-.bg-color-btn.none:hover {
-  background: rgba(255, 255, 255, 0.15);
-}
-
 .btn-close {
   width: 28px;
   height: 28px;
@@ -389,7 +326,7 @@ watch(text, () => {
 }
 
 .line-num {
-  font-size: 13px;
+  font-size: var(--editor-font-size, 13px);
   line-height: 1.6;
   height: 1.6em;
   color: rgba(255, 255, 255, 0.25);
@@ -403,7 +340,7 @@ watch(text, () => {
   background: transparent;
   border: none;
   color: #fff;
-  font-size: 13px;
+  font-size: var(--editor-font-size, 13px);
   line-height: 1.6;
   resize: none;
   outline: none;
