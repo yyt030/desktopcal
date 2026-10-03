@@ -76,6 +76,7 @@ cd frontend && npm run dev
 - 编码：UTF-8
 - 换行符：LF
 - 提交信息使用中文
+- 读写操作仅限于该工程目录： `$(HOME)/workspaces/desktopcal`
 
 ## 注意事项
 
