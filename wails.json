@@ -1,0 +1,12 @@
+{
+  "$schema": "https://wails.io/schemas/config.v2.json",
+  "name": "desktopcal",
+  "outputfilename": "desktopcal",
+  "frontend:install": "npm install",
+  "frontend:build": "npx vite build",
+  "frontend:dev:watcher": "npx vite dev",
+  "frontend:dev:serverUrl": "auto",
+  "author": {
+    "name": ""
+  }
+}

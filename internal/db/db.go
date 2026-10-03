@@ -1,0 +1,149 @@
+package db
+
+import (
+	"database/sql"
+	"fmt"
+	"os"
+	"path/filepath"
+	"time"
+
+	"desktopcal/internal/model"
+
+	"github.com/google/uuid"
+	_ "github.com/mattn/go-sqlite3"
+)
+
+type DB struct {
+	conn *sql.DB
+}
+
+func New() (*DB, error) {
+	dir, err := os.UserConfigDir()
+	if err != nil {
+		dir = os.TempDir()
+	}
+	dbDir := filepath.Join(dir, "desktopcal")
+	if err := os.MkdirAll(dbDir, 0755); err != nil {
+		return nil, fmt.Errorf("创建数据目录失败: %w", err)
+	}
+
+	conn, err := sql.Open("sqlite3", filepath.Join(dbDir, "calendar.db"))
+	if err != nil {
+		return nil, fmt.Errorf("打开数据库失败: %w", err)
+	}
+
+	db := &DB{conn: conn}
+	if err := db.migrate(); err != nil {
+		conn.Close()
+		return nil, err
+	}
+	return db, nil
+}
+
+func (d *DB) Close() error {
+	return d.conn.Close()
+}
+
+func (d *DB) migrate() error {
+	_, err := d.conn.Exec(`
+		CREATE TABLE IF NOT EXISTS events (
+			id TEXT PRIMARY KEY,
+			title TEXT NOT NULL,
+			description TEXT DEFAULT '',
+			date TEXT NOT NULL,
+			start_time TEXT DEFAULT '',
+			end_time TEXT DEFAULT '',
+			color TEXT DEFAULT '#4A90D9',
+			created_at TEXT NOT NULL,
+			updated_at TEXT NOT NULL
+		);
+		CREATE INDEX IF NOT EXISTS idx_events_date ON events(date);
+	`)
+	if err != nil {
+		return fmt.Errorf("数据库迁移失败: %w", err)
+	}
+	return nil
+}
+
+func (d *DB) GetEventsByDate(date string) ([]*model.Event, error) {
+	rows, err := d.conn.Query(
+		`SELECT id, title, description, date, start_time, end_time, color, created_at, updated_at
+		 FROM events WHERE date = ? ORDER BY start_time`, date)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var events []*model.Event
+	for rows.Next() {
+		e := &model.Event{}
+		if err := rows.Scan(&e.ID, &e.Title, &e.Description, &e.Date,
+			&e.StartTime, &e.EndTime, &e.Color, &e.CreatedAt, &e.UpdatedAt); err != nil {
+			return nil, err
+		}
+		events = append(events, e)
+	}
+	if events == nil {
+		events = []*model.Event{}
+	}
+	return events, rows.Err()
+}
+
+func (d *DB) GetEventsByMonth(year, month int) ([]*model.Event, error) {
+	start := fmt.Sprintf("%04d-%02d-01", year, month)
+	next := time.Date(year, time.Month(month)+1, 1, 0, 0, 0, 0, time.Local)
+	end := next.AddDate(0, 0, -1).Format("2006-01-02")
+	rows, err := d.conn.Query(
+		`SELECT id, title, description, date, start_time, end_time, color, created_at, updated_at
+		 FROM events WHERE date >= ? AND date <= ? ORDER BY date, start_time`, start, end)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var events []*model.Event
+	for rows.Next() {
+		e := &model.Event{}
+		if err := rows.Scan(&e.ID, &e.Title, &e.Description, &e.Date,
+			&e.StartTime, &e.EndTime, &e.Color, &e.CreatedAt, &e.UpdatedAt); err != nil {
+			return nil, err
+		}
+		events = append(events, e)
+	}
+	if events == nil {
+		events = []*model.Event{}
+	}
+	return events, rows.Err()
+}
+
+func (d *DB) CreateEvent(event *model.Event) (*model.Event, error) {
+	now := time.Now().Format(time.RFC3339)
+	event.ID = uuid.New().String()
+	event.CreatedAt = now
+	event.UpdatedAt = now
+
+	_, err := d.conn.Exec(
+		`INSERT INTO events (id, title, description, date, start_time, end_time, color, created_at, updated_at)
+		 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+		event.ID, event.Title, event.Description, event.Date,
+		event.StartTime, event.EndTime, event.Color, event.CreatedAt, event.UpdatedAt)
+	if err != nil {
+		return nil, err
+	}
+	return event, nil
+}
+
+func (d *DB) UpdateEvent(event *model.Event) error {
+	event.UpdatedAt = time.Now().Format(time.RFC3339)
+	_, err := d.conn.Exec(
+		`UPDATE events SET title=?, description=?, date=?, start_time=?, end_time=?, color=?, updated_at=?
+		 WHERE id=?`,
+		event.Title, event.Description, event.Date,
+		event.StartTime, event.EndTime, event.Color, event.UpdatedAt, event.ID)
+	return err
+}
+
+func (d *DB) DeleteEvent(id string) error {
+	_, err := d.conn.Exec(`DELETE FROM events WHERE id=?`, id)
+	return err
+}
