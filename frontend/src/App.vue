@@ -15,7 +15,7 @@
         :days="days"
         :selected-date="selectedDate"
         @select-day="onSelectDay"
-        @quick-add="onQuickAdd"
+        @quick-add="onDblClickDay"
       />
     </div>
     <EventPopup
@@ -40,7 +40,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch, nextTick } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import AppHeader from './components/AppHeader.vue'
 import CalendarGrid from './components/CalendarGrid.vue'
 import EventPopup from './components/EventPopup.vue'
@@ -104,16 +104,11 @@ function goToday() {
 
 function onSelectDay(date: string) {
   selectedDate.value = date
-  showPopup.value = true
 }
 
-function onQuickAdd(date: string) {
+function onDblClickDay(date: string) {
   selectedDate.value = date
-  quickAddDate.value = ''
   showPopup.value = true
-  nextTick(() => {
-    quickAddDate.value = date
-  })
 }
 
 async function onSaveLines(lines: { title: string; completed: boolean }[]) {

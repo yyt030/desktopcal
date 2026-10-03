@@ -27,6 +27,14 @@
       ></span>
       <span v-if="day.events.length > 2" class="more-count">+{{ day.events.length - 2 }}</span>
     </div>
+    <div v-if="day.events.length > 0" class="events-text">
+      <div
+        v-for="evt in day.events.slice(0, 3)"
+        :key="evt.id"
+        class="event-text"
+        :class="{ completed: evt.completed }"
+      >{{ evt.title }}</div>
+    </div>
   </div>
 </template>
 
@@ -152,5 +160,30 @@ const lunarDisplay = computed(() => {
 .more-count {
   font-size: 9px;
   color: var(--text-muted);
+}
+
+.events-text {
+  width: 100%;
+  margin-top: 2px;
+  overflow: hidden;
+  flex: 1;
+  min-height: 0;
+}
+
+.event-text {
+  font-size: 10px;
+  line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--text-primary);
+  text-align: left;
+  padding: 0 2px;
+  border-radius: 2px;
+}
+
+.event-text.completed {
+  text-decoration: line-through;
+  color: var(--text-secondary);
 }
 </style>
