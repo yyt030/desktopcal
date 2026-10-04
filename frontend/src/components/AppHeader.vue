@@ -75,8 +75,9 @@ defineEmits<{
   font-size: 20px;
   font-weight: 600;
   letter-spacing: 0.5px;
-  background: linear-gradient(135deg, #fff, rgba(255,255,255,0.7));
+  background: linear-gradient(135deg, var(--text-primary), var(--text-secondary));
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 

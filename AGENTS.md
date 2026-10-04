@@ -6,7 +6,7 @@
 
 ## 技术栈
 
-- **后端**: Go 1.25.14, Wails v2, SQLite (go-sqlite3)
+- **后端**: Go 1.25.14, Wails v3 (`github.com/wailsapp/wails/v3`), SQLite (go-sqlite3)
 - **前端**: Vue 3 (Composition API), TypeScript, Pinia, Vite
 - **构建**: Makefile (后端), npm + Vite (前端)
 
@@ -14,21 +14,31 @@
 
 ```
 .
-├── main.go              # Wails 入口，初始化窗口和数据库
-├── app.go               # App 结构体，绑定到前端的方法
+├── main.go              # Wails 入口，初始化窗口、托盘和数据库
+├── app.go               # App 结构体，日历/事件等绑定到前端的方法
+├── app_data.go          # 设置读写、数据导入导出（绑定方法）
+├── app_window.go        # 窗口控制（隐藏/显示/置顶/退出，绑定方法）
 ├── internal/
-│   ├── db/db.go         # SQLite 数据库操作
-│   ├── lunar/lunar.go   # 农历/节气计算
+│   ├── db/
+│   │   ├── db.go            # 连接与建表迁移
+│   │   ├── db_event.go      # 事件 CRUD
+│   │   ├── db_background.go # 日期背景色
+│   │   ├── db_settings.go   # 设置键值读写
+│   │   └── db_import.go     # 导入覆盖写入
+│   ├── lunar/
+│   │   ├── lunar.go         # 公历转农历、节气查询
+│   │   ├── lunar_calc.go    # 历法计算
+│   │   └── lunar_data.go    # 1900–2100 农历数据表
 │   └── model/model.go   # 数据模型定义
 ├── frontend/
 │   ├── src/
 │   │   ├── main.ts      # Vue 入口
 │   │   ├── App.vue      # 根组件
 │   │   ├── api.ts       # Wails 后端调用封装
+│   │   ├── style.css    # 全局样式与主题 CSS 变量
 │   │   ├── types.ts     # TypeScript 类型定义
-│   │   ├── components/  # Vue 组件
-│   │   └── stores/      # Pinia 状态管理
-│   └── wailsjs/         # Wails 自动生成的绑定代码（勿手动修改）
+│   │   └── components/  # Vue 组件
+│   └── bindings/        # Wails 自动生成的绑定代码（勿手动修改）
 ├── Makefile             # 构建命令
 └── wails.json           # Wails 配置
 ```
@@ -68,7 +78,7 @@ cd frontend && npm run dev
 - TypeScript strict 模式，不使用 any
 - 路径别名：`@/` 映射到 `frontend/src/`
 - 组件使用 PascalCase 命名
-- Wails 绑定代码（`wailsjs/`）不要手动修改
+- Wails 绑定代码（`frontend/bindings/`）不要手动修改，由 `wails` 生成
 
 ### 通用
 
@@ -81,7 +91,11 @@ cd frontend && npm run dev
 
 ## 注意事项
 
-- `frontend/wailsjs/` 目录由 Wails 自动生成，不要手动编辑
+- `frontend/bindings/` 目录由 Wails 自动生成，不要手动编辑
+- 当前使用 Wails **v3**（`wails.json` 的 `$schema` 仍指向 v2 配置，属历史遗留）
+- `main.go` 中系统托盘目前被注释掉（`TEMP: tray disabled for isolation`），恢复时取消相关注释即可
 - SQLite 使用 CGO，构建时需要 `CGO_ENABLED=1`
-- macOS 构建需要 `CGO_LDFLAGS="-framework UniformTypeIdentifiers"`
+- macOS 构建的 `CGO_CFLAGS` 与 `CGO_LDFLAGS` 必须带相同的最低版本
+  （`-mmacosx-version-min=12.0`，见 Makefile 的 `MACOS_MIN`），否则会刷屏
+  `built for newer macOS version (12.0) than being linked (10.13)` 链接警告
 - Go 使用自定义 GOROOT：`$(HOME)/.gvm/gos/go1.25.14`

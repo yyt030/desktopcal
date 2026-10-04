@@ -6,7 +6,7 @@
 
 ### 技术栈
 
-- **后端**：Go 1.25 + Wails v2 + SQLite
+- **后端**：Go 1.25 + Wails v3 + SQLite
 - **前端**：Vue 3 (Composition API) + TypeScript + Pinia + Vite
 - **构建**：Makefile（后端）+ npm（前端）
 
@@ -175,7 +175,7 @@
 
 ### 6.1 桌面应用
 
-- 基于 Wails v2 框架
+- 基于 Wails v3 框架
 - 窗口默认置顶
 - 最小宽度 900px，最小高度 600px
 - 默认尺寸 1100×750px

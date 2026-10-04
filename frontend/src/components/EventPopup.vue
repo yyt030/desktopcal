@@ -234,9 +234,10 @@ watch(text, () => {
   max-height: 70vh;
   display: flex;
   flex-direction: column;
-  background: #1e1e2e;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
   border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--border);
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.05);
   overflow: hidden;
 }
@@ -246,7 +247,7 @@ watch(text, () => {
   justify-content: space-between;
   align-items: flex-start;
   padding: 20px 16px 16px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid var(--border);
 }
 
 .popup-header-left {
@@ -269,20 +270,21 @@ watch(text, () => {
   font-size: 42px;
   font-weight: 700;
   line-height: 1;
-  background: linear-gradient(135deg, #fff, rgba(255,255,255,0.7));
+  background: linear-gradient(135deg, var(--text-primary), var(--text-secondary));
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
 .popup-weekday {
   font-size: 15px;
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--text-secondary);
 }
 
 .popup-lunar {
   margin-top: 8px;
   font-size: 13px;
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--text-secondary);
   display: flex;
   gap: 8px;
   align-items: center;
@@ -290,7 +292,7 @@ watch(text, () => {
 
 .lunar-extra {
   font-size: 11px;
-  color: rgba(255, 255, 255, 0.4);
+  color: var(--text-muted);
 }
 
 .popup-solar-term {
@@ -307,14 +309,14 @@ watch(text, () => {
   align-items: center;
   justify-content: center;
   border-radius: 6px;
-  color: rgba(255, 255, 255, 0.6);
-  background: rgba(255, 255, 255, 0.06);
+  color: var(--text-secondary);
+  background: var(--bg-hover);
   transition: all 0.2s;
 }
 
 .btn-close:hover {
-  background: rgba(255, 255, 255, 0.12);
-  color: #fff;
+  background: var(--bg-active);
+  color: var(--text-primary);
 }
 
 .popup-body {
@@ -336,7 +338,7 @@ watch(text, () => {
   font-size: var(--editor-font-size, 13px);
   line-height: 1.6;
   height: 1.6em;
-  color: rgba(255, 255, 255, 0.25);
+  color: var(--text-muted);
   text-align: right;
   min-width: 20px;
   font-variant-numeric: tabular-nums;
@@ -346,7 +348,7 @@ watch(text, () => {
   flex: 1;
   background: transparent;
   border: none;
-  color: #fff;
+  color: var(--text-primary);
   font-size: var(--editor-font-size, 13px);
   line-height: 1.6;
   resize: none;
@@ -357,17 +359,17 @@ watch(text, () => {
 }
 
 .events-textarea::placeholder {
-  color: rgba(255, 255, 255, 0.2);
+  color: var(--text-muted);
 }
 
 .popup-footer {
   padding: 6px 16px;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  border-top: 1px solid var(--border);
 }
 
 .footer-hint {
   font-size: 11px;
-  color: rgba(255, 255, 255, 0.25);
+  color: var(--text-muted);
 }
 
 .popup-enter-active, .popup-leave-active {
