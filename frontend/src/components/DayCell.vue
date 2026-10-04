@@ -20,7 +20,7 @@
     </div>
     <div v-if="day.events.length > 0" class="events-text">
       <div
-        v-for="evt in day.events.slice(0, 3)"
+        v-for="evt in day.events.slice(0, 5)"
         :key="evt.id"
         class="event-text"
         :class="{ completed: evt.completed }"
@@ -59,14 +59,14 @@ const lunarDisplay = computed(() => {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 6px 4px;
-  border-radius: var(--radius-sm);
+  padding: 4px 3px;
   cursor: pointer;
   transition: all 0.15s;
   position: relative;
   min-height: 0;
-  gap: 2px;
-  border: 1px solid var(--border);
+  gap: 1px;
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
 }
 
 .day-cell:hover {
@@ -75,17 +75,14 @@ const lunarDisplay = computed(() => {
 
 .day-cell.selected {
   background: var(--bg-active);
-  border-color: var(--accent);
 }
 
 .day-cell.today {
   background: var(--today-bg);
-  border-color: var(--today-border);
 }
 
 .day-cell.today.selected {
   background: var(--bg-active);
-  border-color: var(--accent);
 }
 
 .day-cell.other-month {
@@ -100,7 +97,7 @@ const lunarDisplay = computed(() => {
 }
 
 .day-number {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 500;
   line-height: 1;
 }
@@ -118,8 +115,8 @@ const lunarDisplay = computed(() => {
 }
 
 .lunar-row {
-  font-size: 10px;
-  line-height: 1.2;
+  font-size: 9px;
+  line-height: 1.1;
   text-align: center;
   white-space: nowrap;
   overflow: hidden;
@@ -145,15 +142,18 @@ const lunarDisplay = computed(() => {
 }
 
 .event-text {
-  font-size: 10px;
-  line-height: 1.3;
-  white-space: nowrap;
+  font-size: 9px;
+  line-height: 1.2;
+  word-break: break-word;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
   overflow: hidden;
-  text-overflow: ellipsis;
   color: var(--text-primary);
   text-align: left;
-  padding: 0 2px;
+  padding: 1px 2px;
   border-radius: 2px;
+  margin-bottom: 1px;
 }
 
 .event-text.completed {

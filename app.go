@@ -46,24 +46,21 @@ func (a *App) GetMonthDays(year, month int) ([]*model.DayInfo, error) {
 	end := start.AddDate(0, 1, -1)
 	weekday := int(start.Weekday())
 	offset := (weekday - firstDayOfWeek + 7) % 7
-	naturalStart := start.AddDate(0, 0, -offset)
-	lastDayOffset := (int(end.Weekday()) - firstDayOfWeek + 7) % 7
+	
+	// 计算月末需要补齐的天数
+	lastWeekday := int(end.Weekday())
+	lastDayOffset := (lastWeekday - firstDayOfWeek + 7) % 7
 	trailing := (6 - lastDayOffset) % 7
-	totalDays := offset + end.Day() + trailing
-
-	todayRow := 0
-	if today.Year() == year && int(today.Month()) == month {
-		todayRow = (offset + today.Day() - 1) / 7
+	
+	// 总天数 = 前导 + 当月天数 + 尾部，补齐到整周
+	daysInMonth := end.Day()
+	totalDays := offset + daysInMonth + trailing
+	// 确保是7的倍数（整周）
+	if totalDays%7 != 0 {
+		totalDays += 7 - (totalDays % 7)
 	}
-	rows := totalDays / 7
-	leading := rows/2 - todayRow
-	if leading < 0 {
-		leading = 0
-	}
-	if leading > rows {
-		leading = rows
-	}
-	gridStart := naturalStart.AddDate(0, 0, -leading*7)
+	
+	gridStart := start.AddDate(0, 0, -offset)
 	gridEnd := gridStart.AddDate(0, 0, totalDays-1)
 
 	allEvents, err := a.db.GetEventsByDateRange(gridStart.Format("2006-01-02"), gridEnd.Format("2006-01-02"))

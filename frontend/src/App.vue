@@ -263,8 +263,8 @@ onMounted(async () => {
   display: flex;
   flex-direction: column;
   height: 100vh;
-  padding: 16px 20px;
-  gap: 12px;
+  padding: 8px 12px;
+  gap: 8px;
   opacity: var(--app-opacity, 1);
 }
 

@@ -75,9 +75,9 @@ const rowCount = computed(() => props.days.length / 7)
 .weekday-row {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  padding: 0 4px 8px;
+  padding: 0 2px 4px;
   border-bottom: 1px solid var(--border);
-  margin-bottom: 4px;
+  margin-bottom: 2px;
 }
 
 .weekday {
@@ -96,8 +96,8 @@ const rowCount = computed(() => props.days.length / 7)
 .grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 2px;
-  padding: 4px;
+  gap: 0;
+  padding: 0;
   flex: 1;
   min-height: 0;
 }
