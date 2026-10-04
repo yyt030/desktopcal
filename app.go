@@ -37,30 +37,13 @@ func (a *App) GetMonthDays(year, month int) ([]*model.DayInfo, error) {
 	today := time.Now()
 	todayStr := today.Format("2006-01-02")
 
-	firstDayOfWeek := 0
-	if v, _ := a.db.GetSetting("first_day_of_week"); v != "" {
-		fmt.Sscanf(v, "%d", &firstDayOfWeek)
-	}
-
 	start := time.Date(year, time.Month(month), 1, 0, 0, 0, 0, time.Local)
 	end := start.AddDate(0, 1, -1)
-	weekday := int(start.Weekday())
-	offset := (weekday - firstDayOfWeek + 7) % 7
-	
-	// 计算月末需要补齐的天数
-	lastWeekday := int(end.Weekday())
-	lastDayOffset := (lastWeekday - firstDayOfWeek + 7) % 7
-	trailing := (6 - lastDayOffset) % 7
-	
-	// 总天数 = 前导 + 当月天数 + 尾部，补齐到整周
-	daysInMonth := end.Day()
-	totalDays := offset + daysInMonth + trailing
-	// 确保是7的倍数（整周）
-	if totalDays%7 != 0 {
-		totalDays += 7 - (totalDays % 7)
-	}
-	
-	gridStart := start.AddDate(0, 0, -offset)
+
+	// 从1号开始按顺序显示当月全部日期，最后一行允许不满
+	totalDays := end.Day()
+
+	gridStart := start
 	gridEnd := gridStart.AddDate(0, 0, totalDays-1)
 
 	allEvents, err := a.db.GetEventsByDateRange(gridStart.Format("2006-01-02"), gridEnd.Format("2006-01-02"))
