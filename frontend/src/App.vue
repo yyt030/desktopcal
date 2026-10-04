@@ -50,13 +50,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import AppHeader from './components/AppHeader.vue'
 import CalendarGrid from './components/CalendarGrid.vue'
 import EventPopup from './components/EventPopup.vue'
 import SettingsPopup from './components/SettingsPopup.vue'
 import { getMonthDays, createEvent, updateEvent, deleteEvent, exportData, importData, getSettings, saveSettings, setDayBackground, setWindowSize, setWindowAlwaysOnTop } from './api'
-import { formatDate } from './utils/date'
+import { formatDate, isSameMonth } from './utils/date'
 import { applyAppearance } from './theme'
 import type { DayInfo, Settings } from './types'
 
@@ -71,6 +71,13 @@ const showPopup = ref(false)
 const showSettings = ref(false)
 const toast = ref('')
 let toastTimer: number | undefined
+
+// 已渲染数据对应的「今天」。跨日检测据此判断，避免每分钟都重新拉数据。
+let anchorToday = formatDate(new Date())
+let dayCheckTimer: number | undefined
+
+/** 跨日检测间隔：每 60 秒做一次纯日期比较，只有日期真的变了才重新加载。 */
+const ROLLOVER_CHECK_MS = 60000
 
 function showToast(msg: string) {
   toast.value = msg
@@ -106,9 +113,30 @@ const selectedSolarTerm = computed(() => selectedDay.value?.solarTerm ?? '')
 async function loadMonth() {
   try {
     days.value = await getMonthDays(currentYear.value, currentMonth.value)
+    // 拉取成功才更新锚点：数据已反映这里取的日期，失败时保留旧值以便下次重试。
+    anchorToday = formatDate(new Date())
   } catch (err) {
     showToast('加载日历失败：' + errMsg(err))
   }
+}
+
+/**
+ * 跨日检测：应用常驻托盘、长期不关闭，「今天」标记是后端按取数时刻算的，
+ * 跨过午夜后若不重新取数就会停留在昨天。定时器本身可能被隐藏窗口节流，
+ * 所以判断依据始终是「已渲染的日期 ≠ 当前日期」，而非定时器是否准点触发。
+ */
+function checkRollover() {
+  const today = formatDate(new Date())
+  if (today === anchorToday) return
+
+  // 视图仍停在旧「今天」所在月份时，跟随跨日进入新月份；
+  // 用户已手动翻到其它月份则不打断，只刷新数据让标记回到正确位置。
+  if (isSameMonth(currentYear.value, currentMonth.value, anchorToday)) {
+    const t = new Date()
+    currentYear.value = t.getFullYear()
+    currentMonth.value = t.getMonth() + 1
+  }
+  loadMonth()
 }
 
 function prevMonth() {
@@ -278,6 +306,11 @@ onMounted(async () => {
   const s = await getSettings()
   currentSettings.value = s
   applySettings(s)
+  dayCheckTimer = window.setInterval(checkRollover, ROLLOVER_CHECK_MS)
+})
+
+onBeforeUnmount(() => {
+  if (dayCheckTimer !== undefined) window.clearInterval(dayCheckTimer)
 })
 </script>
 

@@ -14,3 +14,11 @@ export function formatDate(d: Date): string {
   const day = String(d.getDate()).padStart(2, '0')
   return `${y}-${m}-${day}`
 }
+
+/**
+ * 判断给定的年月是否正好是 date（'YYYY-MM-DD'）所在的月份。
+ * 用于跨日刷新时决定视图是否应跟随进入新的月份。
+ */
+export function isSameMonth(year: number, month: number, date: string): boolean {
+  return `${year}-${String(month).padStart(2, '0')}` === date.slice(0, 7)
+}
