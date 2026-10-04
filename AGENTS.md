@@ -6,7 +6,7 @@
 
 ## 技术栈
 
-- **后端**: Go 1.25.14, Wails v3 (`github.com/wailsapp/wails/v3`), SQLite (go-sqlite3)
+- **后端**: Go 1.25.14, Wails v3 (`github.com/wailsapp/wails/v3`), SQLite (modernc.org/sqlite，纯 Go)
 - **前端**: Vue 3 (Composition API), TypeScript, Pinia, Vite
 - **构建**: Makefile (后端), npm + Vite (前端)
 
@@ -70,6 +70,9 @@ cd frontend && npm run dev
 make bindings
 ```
 
+> 构建会触发 Go 全量编译。**务必按「通用」规范限制资源**（`GOMAXPROCS=2 -p 2`
+> + `nice -n 15`，且一次只跑一个构建）；交叉编译到 Windows 尤其耗 CPU。
+
 ## 编码规范
 
 ### Go 后端
@@ -99,6 +102,11 @@ make bindings
 - 提交信息使用中文
 - 读写操作仅限于该工程目录： `$(HOME)/workspaces/desktopcal`
 - 如需要其它权限和操作的话，一定要审核
+- **编译/构建必须限制本机资源占用**：`go build` / `go test` / `go vet` 等命令
+  一律带 `GOMAXPROCS=2` 与 `-p 2`，并以 `nice -n 15` 降低优先级，例如
+  `nice -n 15 env GOMAXPROCS=2 go build -p 2 -o out .`；同时禁止并发执行多个
+  构建命令（一次只跑一个）。交叉编译（`GOOS=windows`）会从零编译整套 Wails + cgo，
+  CPU 占用极高，尤其必须限流，否则会导致本机风扇狂转
 
 ## 注意事项
 
@@ -109,8 +117,14 @@ make bindings
   菜单栏图标是 `build/darwin/trayicon.png`（纯黑 + alpha 的模板图，系统按  
   菜单栏明暗自动反色），改动后运行 `build/gen_icon.sh` 重新生成。  
   退出必须先置 `quitting` 标志再调 `app.Quit()`，否则会被窗口关闭 hook 拦截
-- SQLite 使用 CGO，构建时需要 `CGO_ENABLED=1`
-- macOS 构建的 `CGO_CFLAGS` 与 `CGO_LDFLAGS` 必须带相同的最低版本  
+- 数据库驱动是**纯 Go** 的 `modernc.org/sqlite`（已弃用需要 CGO 的 `mattn/go-sqlite3`），
+  因此 SQLite 部分可以 `CGO_ENABLED=0` 直接交叉编译到 Windows，无需 mingw 工具链：
+  `GOOS=windows GOARCH=amd64 CGO_ENABLED=0 go build -o desktopcal.exe .`
+- DSN 用 `_pragma=busy_timeout(5000)&_pragma=journal_mode(WAL)` 传 PRAGMA，且**文件名不带
+  `file:` 前缀**：该驱动仅在带 `file:` 时才把整串交给 SQLite 按 URI 解析，否则会剥掉参数
+  按普通路径打开 —— 这样 Windows 的盘符路径（`C:\...`）才不会被 URI 规则误判
+- macOS 构建仍需 `CGO_ENABLED=1`（Wails 的 darwin 实现是 Objective-C，走 cgo），
+  `CGO_CFLAGS` 与 `CGO_LDFLAGS` 必须带相同的最低版本  
   （`-mmacosx-version-min=12.0`，见 Makefile 的 `MACOS_MIN`），否则会刷屏  
   `built for newer macOS version (12.0) than being linked (10.13)` 链接警告
 - Go 使用自定义 GOROOT：`$(HOME)/.gvm/gos/go1.25.14`

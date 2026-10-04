@@ -6,7 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
-	_ "github.com/mattn/go-sqlite3"
+	_ "modernc.org/sqlite"
 )
 
 type DB struct {
@@ -25,10 +25,15 @@ func New() (*DB, error) {
 	}
 
 	// busy_timeout：并发写入时等待而非立刻返回 SQLITE_BUSY；
-	// WAL：读写可并发，避免界面查询被写事务阻塞。
-	dsn := fmt.Sprintf("file:%s?_busy_timeout=5000&_journal_mode=WAL",
-		filepath.Join(dbDir, "calendar.db"))
-	conn, err := sql.Open("sqlite3", dsn)
+	// journal_mode=WAL：读写可并发，避免界面查询被写事务阻塞。
+	//
+	// 驱动为纯 Go 的 modernc.org/sqlite（不走 CGO，便于交叉编译到 Windows），
+	// 其 PRAGMA 通过 _pragma=名(值) 传递。文件名刻意不加 file: 前缀：
+	// 该驱动只在带 file: 时才交给 SQLite 按 URI 解析，否则剥掉参数后当普通
+	// 路径打开——这样 Windows 的盘符路径（C:\...）才不会被 URI 规则误判。
+	dbPath := filepath.Join(dbDir, "calendar.db")
+	dsn := dbPath + "?_pragma=busy_timeout(5000)&_pragma=journal_mode(WAL)"
+	conn, err := sql.Open("sqlite", dsn)
 	if err != nil {
 		return nil, fmt.Errorf("打开数据库失败: %w", err)
 	}
