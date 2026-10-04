@@ -1,16 +1,20 @@
 import * as App from '../bindings/desktopcal/app'
 import type { DayInfo, Event, LunarDay, Settings } from './types'
 
+// 生成器对指针/切片一律附上 `| null`（Go 侧可能为空），此处 await 后用普通
+// `as` 收窄。相比 `as unknown as` 仍保留结构重叠检查：后端签名发生不兼容
+// 变化时会在这一层直接报错，而不是静默通过。
+
 export async function getMonthDays(year: number, month: number): Promise<DayInfo[]> {
-  return App.GetMonthDays(year, month) as unknown as DayInfo[]
+  return (await App.GetMonthDays(year, month)) as DayInfo[]
 }
 
 export async function getEventsByDate(date: string): Promise<Event[]> {
-  return App.GetEventsByDate(date) as unknown as Event[]
+  return (await App.GetEventsByDate(date)) as Event[]
 }
 
 export async function createEvent(event: Event): Promise<Event> {
-  return App.CreateEvent(event) as unknown as Event
+  return (await App.CreateEvent(event)) as Event
 }
 
 export async function updateEvent(event: Event): Promise<void> {
@@ -22,7 +26,7 @@ export async function deleteEvent(id: string): Promise<void> {
 }
 
 export async function getTodayLunar(): Promise<LunarDay> {
-  return App.GetTodayLunar() as unknown as LunarDay
+  return (await App.GetTodayLunar()) as LunarDay
 }
 
 export async function getTodaySolarTerm(): Promise<string> {
@@ -42,7 +46,7 @@ export async function importData(data: string): Promise<void> {
 }
 
 export async function getSettings(): Promise<Settings> {
-  return App.GetSettings() as unknown as Settings
+  return (await App.GetSettings()) as Settings
 }
 
 export async function saveSettings(settings: Settings): Promise<void> {

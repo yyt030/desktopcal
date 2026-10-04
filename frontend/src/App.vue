@@ -27,11 +27,13 @@
       :events="selectedEvents"
       :lunar="selectedLunar"
       :solar-term="selectedSolarTerm"
-      :quick-add-date="quickAddDate"
+      :quick-add-token="quickAddToken"
       :show-lunar="currentSettings.showLunar"
       :show-solar-term="currentSettings.showSolarTerm"
+      :bg-color="selectedDay?.bgColor ?? ''"
       @close="showPopup = false"
       @save-lines="onSaveLines"
+      @set-bg="onSetBg"
     />
     <SettingsPopup
       :visible="showSettings"
@@ -53,7 +55,9 @@ import AppHeader from './components/AppHeader.vue'
 import CalendarGrid from './components/CalendarGrid.vue'
 import EventPopup from './components/EventPopup.vue'
 import SettingsPopup from './components/SettingsPopup.vue'
-import { getMonthDays, createEvent, updateEvent, deleteEvent, exportData, importData, getSettings, saveSettings, setWindowSize, setWindowAlwaysOnTop } from './api'
+import { getMonthDays, createEvent, updateEvent, deleteEvent, exportData, importData, getSettings, saveSettings, setDayBackground, setWindowSize, setWindowAlwaysOnTop } from './api'
+import { formatDate } from './utils/date'
+import { applyAppearance } from './theme'
 import type { DayInfo, Settings } from './types'
 
 const now = new Date()
@@ -61,7 +65,8 @@ const currentYear = ref(now.getFullYear())
 const currentMonth = ref(now.getMonth() + 1)
 const days = ref<DayInfo[]>([])
 const selectedDate = ref(formatDate(now))
-const quickAddDate = ref('')
+// 每次双击日格自增，作为弹窗「新增一行」的信号
+const quickAddToken = ref(0)
 const showPopup = ref(false)
 const showSettings = ref(false)
 const toast = ref('')
@@ -141,6 +146,7 @@ function onSelectDay(date: string) {
 function onDblClickDay(date: string) {
   selectedDate.value = date
   showPopup.value = true
+  quickAddToken.value++
 }
 
 async function onSaveLines(lines: { title: string; completed: boolean }[]) {
@@ -151,6 +157,7 @@ async function onSaveLines(lines: { title: string; completed: boolean }[]) {
     const matched = new Set<string>()
     const toCreate: { title: string; completed: boolean }[] = []
 
+    // 第一遍：按标题精确匹配，仅同步完成状态
     for (const line of lines) {
       const found = existing.find(e => e.title === line.title && !matched.has(e.id))
       if (found) {
@@ -163,13 +170,26 @@ async function onSaveLines(lines: { title: string; completed: boolean }[]) {
       }
     }
 
+    // 第二遍：未匹配上的行优先「改写」未匹配的已有事件，
+    // 保留事件 ID 与创建时间，而不是删旧建新
+    const orphans = existing.filter(e => !matched.has(e.id))
+    const reused = Math.min(orphans.length, toCreate.length)
+    for (let i = 0; i < reused; i++) {
+      await updateEvent({
+        ...orphans[i],
+        title: toCreate[i].title,
+        completed: toCreate[i].completed,
+      })
+      matched.add(orphans[i].id)
+    }
+
     for (const e of existing) {
       if (!matched.has(e.id)) {
         await deleteEvent(e.id)
       }
     }
 
-    for (const line of toCreate) {
+    for (const line of toCreate.slice(reused)) {
       await createEvent({
         id: '',
         title: line.title,
@@ -188,6 +208,16 @@ async function onSaveLines(lines: { title: string; completed: boolean }[]) {
   }
 
   await loadMonth()
+}
+
+async function onSetBg(color: string) {
+  try {
+    await setDayBackground(selectedDate.value, color)
+    await loadMonth()
+    showToast(color ? '已设置当天背景色' : '已清除背景色')
+  } catch (err) {
+    showToast('设置背景色失败：' + errMsg(err))
+  }
 }
 
 async function onExport() {
@@ -225,73 +255,9 @@ async function onImport() {
   input.click()
 }
 
-const themeVars: Record<string, Record<string, string>> = {
-  dark: {
-    '--bg-primary': '#1e1e2e',
-    '--bg-secondary': '#2a2a3e',
-    '--bg-hover': '#33334d',
-    '--bg-active': 'rgba(74,144,217,0.28)',
-    '--today-bg': 'rgba(74,144,217,0.18)',
-    '--weekend': 'rgba(232,120,120,0.85)',
-    '--text-primary': '#ffffff',
-    '--text-secondary': 'rgba(255,255,255,0.6)',
-    '--text-muted': 'rgba(255,255,255,0.3)',
-    '--border': 'rgba(255,255,255,0.1)',
-    '--accent': '#4A90D9',
-    '--accent-hover': '#5BA0E9',
-  },
-  light: {
-    '--bg-primary': '#f5f5f5',
-    '--bg-secondary': '#e8e8e8',
-    '--bg-hover': '#ddd',
-    '--bg-active': 'rgba(37,99,235,0.16)',
-    '--today-bg': 'rgba(37,99,235,0.12)',
-    '--weekend': 'rgba(200,70,70,0.9)',
-    '--text-primary': '#1a1a1a',
-    '--text-secondary': 'rgba(0,0,0,0.55)',
-    '--text-muted': 'rgba(0,0,0,0.35)',
-    '--border': 'rgba(0,0,0,0.12)',
-    '--accent': '#2563eb',
-    '--accent-hover': '#1d4ed8',
-  },
-  blue: {
-    '--bg-primary': '#1a3a5c',
-    '--bg-secondary': '#1e4470',
-    '--bg-hover': '#254e80',
-    '--bg-active': 'rgba(91,163,245,0.3)',
-    '--today-bg': 'rgba(91,163,245,0.18)',
-    '--weekend': 'rgba(232,140,140,0.85)',
-    '--text-primary': '#e8f0ff',
-    '--text-secondary': 'rgba(232,240,255,0.6)',
-    '--text-muted': 'rgba(232,240,255,0.35)',
-    '--border': 'rgba(255,255,255,0.12)',
-    '--accent': '#5ba3f5',
-    '--accent-hover': '#7bb8f8',
-  },
-  green: {
-    '--bg-primary': '#1a3c2e',
-    '--bg-secondary': '#1e4a36',
-    '--bg-hover': '#256040',
-    '--bg-active': 'rgba(76,175,80,0.3)',
-    '--today-bg': 'rgba(76,175,80,0.18)',
-    '--weekend': 'rgba(232,140,140,0.85)',
-    '--text-primary': '#e8ffe8',
-    '--text-secondary': 'rgba(232,255,232,0.6)',
-    '--text-muted': 'rgba(232,255,232,0.35)',
-    '--border': 'rgba(255,255,255,0.12)',
-    '--accent': '#4caf50',
-    '--accent-hover': '#66bb6a',
-  },
-}
-
+/** 应用设置：主题色/透明度/字号走 CSS 变量，窗口尺寸与置顶走原生窗口接口。 */
 function applySettings(s: Settings) {
-  const root = document.documentElement
-  const vars = themeVars[s.theme] || themeVars.dark
-  for (const [k, v] of Object.entries(vars)) {
-    root.style.setProperty(k, v)
-  }
-  root.style.setProperty('--app-opacity', String(s.opacity / 100))
-  root.style.setProperty('--editor-font-size', s.fontSize + 'px')
+  applyAppearance(s)
   setWindowSize(s.width, s.height)
   setWindowAlwaysOnTop(s.alwaysTop)
 }
@@ -305,13 +271,6 @@ async function onSaveSettings(s: Settings) {
   } catch (err) {
     showToast('保存设置失败：' + errMsg(err))
   }
-}
-
-function formatDate(d: Date): string {
-  const y = d.getFullYear()
-  const m = String(d.getMonth() + 1).padStart(2, '0')
-  const day = String(d.getDate()).padStart(2, '0')
-  return `${y}-${m}-${day}`
 }
 
 onMounted(async () => {

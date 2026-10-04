@@ -186,6 +186,7 @@
 
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
+import { THEMES } from '../theme'
 import type { Settings } from '../types'
 
 const props = defineProps<{
@@ -204,12 +205,8 @@ const tabs = [
   { value: 'window', label: '窗口' },
 ]
 
-const themes = [
-  { value: 'dark', label: '深色', preview: '#1e1e2e' },
-  { value: 'light', label: '浅色', preview: '#f5f5f5' },
-  { value: 'blue', label: '蓝色', preview: '#1a3a5c' },
-  { value: 'green', label: '绿色', preview: '#1a3c2e' },
-]
+// 主题可选项直接复用 theme.ts 的定义，保证设置页与实际生效的主题始终一致
+const themes = THEMES
 
 const activeTab = ref('layout')
 

@@ -12,6 +12,7 @@ export class DayInfo {
     "events": (Event | null)[];
     "isToday": boolean;
     "isCurrentMonth": boolean;
+    "isEmpty": boolean;
     "bgColor": string;
 
     /** Creates a new DayInfo instance. */
@@ -33,6 +34,9 @@ export class DayInfo {
         }
         if (!("isCurrentMonth" in $$source)) {
             this["isCurrentMonth"] = false;
+        }
+        if (!("isEmpty" in $$source)) {
+            this["isEmpty"] = false;
         }
         if (!("bgColor" in $$source)) {
             this["bgColor"] = "";
@@ -174,6 +178,7 @@ export class Settings {
     "firstDayOfWeek": number;
     "showLunar": boolean;
     "showSolarTerm": boolean;
+    "layoutMode": string;
 
     /** Creates a new Settings instance. */
     constructor($$source: Partial<Settings> = {}) {
@@ -203,6 +208,9 @@ export class Settings {
         }
         if (!("showSolarTerm" in $$source)) {
             this["showSolarTerm"] = false;
+        }
+        if (!("layoutMode" in $$source)) {
+            this["layoutMode"] = "";
         }
 
         Object.assign(this, $$source);

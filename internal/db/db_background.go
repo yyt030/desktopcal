@@ -1,10 +1,5 @@
 package db
 
-import (
-	"fmt"
-	"time"
-)
-
 func (d *DB) SetDayBackground(date, color string) error {
 	if color == "" {
 		_, err := d.conn.Exec(`DELETE FROM day_backgrounds WHERE date=?`, date)
@@ -16,49 +11,18 @@ func (d *DB) SetDayBackground(date, color string) error {
 	return err
 }
 
-func (d *DB) GetDayBackgroundsByMonth(year, month int) (map[string]string, error) {
-	start := fmt.Sprintf("%04d-%02d-01", year, month)
-	next := time.Date(year, time.Month(month)+1, 1, 0, 0, 0, 0, time.Local)
-	end := next.AddDate(0, 0, -1).Format("2006-01-02")
-	rows, err := d.conn.Query(
-		`SELECT date, color FROM day_backgrounds WHERE date >= ? AND date <= ?`, start, end)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	result := make(map[string]string)
-	for rows.Next() {
-		var date, color string
-		if err := rows.Scan(&date, &color); err != nil {
-			return nil, err
-		}
-		result[date] = color
-	}
-	return result, rows.Err()
-}
-
 func (d *DB) GetDayBackgroundsByDateRange(start, end string) (map[string]string, error) {
-	rows, err := d.conn.Query(
+	return d.scanBackgrounds(
 		`SELECT date, color FROM day_backgrounds WHERE date >= ? AND date <= ?`, start, end)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	result := make(map[string]string)
-	for rows.Next() {
-		var date, color string
-		if err := rows.Scan(&date, &color); err != nil {
-			return nil, err
-		}
-		result[date] = color
-	}
-	return result, rows.Err()
 }
 
 func (d *DB) GetAllBackgrounds() (map[string]string, error) {
-	rows, err := d.conn.Query(`SELECT date, color FROM day_backgrounds`)
+	return d.scanBackgrounds(`SELECT date, color FROM day_backgrounds`)
+}
+
+// scanBackgrounds 把日期背景色查询结果统一收敛为 map[日期]颜色。
+func (d *DB) scanBackgrounds(query string, args ...any) (map[string]string, error) {
+	rows, err := d.conn.Query(query, args...)
 	if err != nil {
 		return nil, err
 	}

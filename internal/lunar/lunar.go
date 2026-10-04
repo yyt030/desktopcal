@@ -86,10 +86,3 @@ func (c *Calendar) GetSolarTerm(t time.Time) string {
 	}
 	return ""
 }
-
-func (c *Calendar) GetSolarTermName(index int) string {
-	if index >= 0 && index < 24 {
-		return solarTermNames[index]
-	}
-	return ""
-}

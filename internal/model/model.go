@@ -1,5 +1,14 @@
 package model
 
+// DateLayout 是日期在数据库、后端与前端之间统一使用的格式。
+const DateLayout = "2006-01-02"
+
+// 日历显示模式。
+const (
+	LayoutCompact = "compact" // 月历连续排布，交接处无空格
+	LayoutLoose   = "loose"   // 每月单独一页，不混入其它月
+)
+
 type Event struct {
 	ID          string `json:"id"`
 	Title       string `json:"title"`
@@ -24,11 +33,6 @@ type LunarDay struct {
 	GanZhi      string `json:"ganZhi"`
 }
 
-type SolarTerm struct {
-	Name string `json:"name"`
-	Date string `json:"date"`
-}
-
 type DayInfo struct {
 	SolarDate string    `json:"solarDate"`
 	Lunar     *LunarDay `json:"lunar"`
@@ -51,4 +55,21 @@ type Settings struct {
 	ShowLunar      bool   `json:"showLunar"`
 	ShowSolarTerm  bool   `json:"showSolarTerm"`
 	LayoutMode     string `json:"layoutMode"`
+}
+
+// DefaultSettings 返回设置项的默认值：既用于后端读取失败时兜底，
+// 也是前端默认值与设置项编解码（见 app_settings.go）的单一来源。
+func DefaultSettings() *Settings {
+	return &Settings{
+		Opacity:        100,
+		Width:          1100,
+		Height:         750,
+		Theme:          "dark",
+		AlwaysTop:      true,
+		FontSize:       13,
+		FirstDayOfWeek: 0,
+		ShowLunar:      true,
+		ShowSolarTerm:  true,
+		LayoutMode:     LayoutCompact,
+	}
 }

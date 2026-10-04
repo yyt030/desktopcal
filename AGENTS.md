@@ -15,12 +15,15 @@
 ```
 .
 ├── main.go              # Wails 入口，初始化窗口、托盘和数据库
-├── app.go               # App 结构体，日历/事件等绑定到前端的方法
-├── app_data.go          # 设置读写、数据导入导出（绑定方法）
+├── app.go               # App 结构体与运行时依赖注入（绑定服务根）
+├── app_calendar.go      # 月视图数据：日期格子、农历/节气、事件与背景色聚合
+├── app_event.go         # 事件 CRUD、日期背景色、今日农历/节气（绑定方法）
+├── app_settings.go      # 设置项的声明式编解码与批量读写（绑定方法）
+├── app_data.go          # 数据导入导出（绑定方法）
 ├── app_window.go        # 窗口控制（隐藏/显示/置顶/退出，绑定方法）
 ├── internal/
 │   ├── db/
-│   │   ├── db.go            # 连接与建表迁移
+│   │   ├── db.go            # 连接（WAL/busy_timeout）、连接池与建表迁移
 │   │   ├── db_event.go      # 事件 CRUD
 │   │   ├── db_background.go # 日期背景色
 │   │   ├── db_settings.go   # 设置键值读写
@@ -29,14 +32,16 @@
 │   │   ├── lunar.go         # 公历转农历、节气查询
 │   │   ├── lunar_calc.go    # 历法计算
 │   │   └── lunar_data.go    # 1900–2100 农历数据表
-│   └── model/model.go   # 数据模型定义
+│   └── model/model.go   # 数据模型定义、日期格式/布局常量与默认设置
 ├── frontend/
 │   ├── src/
 │   │   ├── main.ts      # Vue 入口
 │   │   ├── App.vue      # 根组件
 │   │   ├── api.ts       # Wails 后端调用封装
 │   │   ├── style.css    # 全局样式与主题 CSS 变量
-│   │   ├── types.ts     # TypeScript 类型定义
+│   │   ├── theme.ts     # 主题定义（CSS 变量 + 应用主题），设置页共用
+│   │   ├── types.ts     # 前端 DTO（派生自 Wails 绑定模型）
+│   │   ├── utils/       # 通用工具（日期等）
 │   │   └── components/  # Vue 组件
 │   └── bindings/        # Wails 自动生成的绑定代码（勿手动修改）
 ├── Makefile             # 构建命令
@@ -60,6 +65,9 @@ make clean
 
 # 前端开发服务器
 cd frontend && npm run dev
+
+# 重新生成前端绑定（改动 internal/model 或绑定方法后必须执行）
+make bindings
 ```
 
 ## 编码规范
@@ -70,7 +78,9 @@ cd frontend && npm run dev
 - 错误信息使用中文（面向用户的校验提示）
 - 内部包放在 `internal/` 下
 - 数据模型集中在 `internal/model/model.go`
-- 数据库操作集中在 `internal/db/db.go`
+- 数据库操作集中在 `internal/db/` 下，按 `db_*.go` 分文件
+- 绑定服务方法按职责分文件（`app_*.go`）
+- **单个 Go 文件不超过 150 行**，超出按职责拆分（见 `docs/product-features.md` §8.1）
 
 ### 前端
 
@@ -78,7 +88,8 @@ cd frontend && npm run dev
 - TypeScript strict 模式，不使用 any
 - 路径别名：`@/` 映射到 `frontend/src/`
 - 组件使用 PascalCase 命名
-- Wails 绑定代码（`frontend/bindings/`）不要手动修改，由 `wails` 生成
+- Wails 绑定代码（`frontend/bindings/`）不要手动修改，由
+  `wails3 generate bindings -ts ./...` 生成
 
 ### 通用
 
@@ -99,3 +110,18 @@ cd frontend && npm run dev
   （`-mmacosx-version-min=12.0`，见 Makefile 的 `MACOS_MIN`），否则会刷屏
   `built for newer macOS version (12.0) than being linked (10.13)` 链接警告
 - Go 使用自定义 GOROOT：`$(HOME)/.gvm/gos/go1.25.14`
+- 设置项集中在 `app_settings.go` 的 `settingsSpec` 声明（键名 + 编解码）：
+  新增设置项时同步更新 `internal/model/model.go` 的 `DefaultSettings()`、执行
+  `make bindings` 重新生成绑定，以及 `App.vue` 的初始值
+- 主题的 CSS 变量统一在 `frontend/src/theme.ts` 维护，设置页与根组件共用同一份定义
+- `frontend/src/types.ts` 的前端 DTO 派生自生成模型，不再手写字段：`Event` /
+  `LunarDay` / `Settings` 是生成模型的直接别名，`DayInfo` 仅把 `events` 从
+  `(Event | null)[]` 收窄为 `Event[]`。因此后端加字段后不用改这个文件，只需
+  重新生成绑定
+- `frontend/bindings/` 由 `wails3 generate bindings -ts ./...` 生成。**必须带 `-ts`**，
+  否则默认输出带 JSDoc 的 `.js`（`@ts-check`）而非 `.ts`
+- 本机 Wails CLI 在 `$(HOME)/.gvm/pkgsets/go1.25.14/global/bin/`：`wails3` 是 v3
+  （v3.0.0-beta.27），`wails` 是 v2（v2.16.0），**本工程只能用 `wails3`**
+- 改动 `internal/model` 或新增/删除绑定方法后，必须重新生成绑定，否则
+  `frontend/bindings/` 的类型会落后于后端（历史上就漏过 `Settings.layoutMode`
+  与 `DayInfo.isEmpty`）

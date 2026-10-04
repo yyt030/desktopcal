@@ -36,6 +36,10 @@
               class="events-textarea"
               placeholder="输入日程，每行一条..."
               :rows="Math.max(lineCount, 5)"
+              spellcheck="false"
+              autocorrect="off"
+              autocapitalize="off"
+              aria-label="日程内容"
               @scroll="syncScroll"
               @keydown="handleKeydown"
               @contextmenu="handleContextMenu"
@@ -43,6 +47,23 @@
           </div>
 
           <div class="popup-footer">
+            <div class="bg-row">
+              <span class="bg-label">背景</span>
+              <button
+                v-for="c in bgColors"
+                :key="c"
+                class="bg-swatch"
+                :class="{ active: bgColor === c }"
+                :style="{ background: c }"
+                :title="c"
+                @click="emit('setBg', c)"
+              ></button>
+              <button
+                class="bg-clear"
+                :class="{ active: !bgColor }"
+                @click="emit('setBg', '')"
+              >清除</button>
+            </div>
             <span class="footer-hint">右键行首加 ✓ 标记完成</span>
           </div>
         </div>
@@ -54,40 +75,47 @@
 <script setup lang="ts">
 import { ref, computed, watch, nextTick } from 'vue'
 import type { Event, LunarDay } from '../types'
+import { parseLocalDate } from '../utils/date'
 
 const props = defineProps<{
   visible: boolean
   date: string
   events: Event[]
-  lunar: LunarDay | undefined
+  lunar?: LunarDay | null
   solarTerm: string
-  quickAddDate: string
+  /** 每次双击日期自增，作为「新增一行并聚焦」的信号（自增可保证重复双击也能触发） */
+  quickAddToken: number
   showLunar: boolean
   showSolarTerm: boolean
+  bgColor: string
 }>()
 
 const emit = defineEmits<{
   close: []
   saveLines: [lines: { title: string; completed: boolean }[]]
+  setBg: [color: string]
 }>()
 
 const weekdays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六']
+
+const bgColors = ['#E74C3C', '#E67E22', '#F1C40F', '#2ECC71', '#3498DB', '#9B59B6']
 
 const text = ref('')
 const textareaRef = ref<HTMLTextAreaElement>()
 const lineNumbersRef = ref<HTMLDivElement>()
 const dirty = ref(false)
+// 由程序（切换日期 / 双击新增行）改写 text 时，不应把内容标记为「已修改」，
+// 避免关闭时触发一次无意义的保存
+let suppressDirty = false
 
 const displayDay = computed(() => {
   if (!props.date) return ''
-  const d = new Date(props.date)
-  return d.getDate()
+  return parseLocalDate(props.date).getDate()
 })
 
 const weekdayName = computed(() => {
   if (!props.date) return ''
-  const d = new Date(props.date)
-  return weekdays[d.getDay()]
+  return weekdays[parseLocalDate(props.date).getDay()]
 })
 
 const lineCount = computed(() => {
@@ -123,6 +151,39 @@ function syncScroll() {
   }
 }
 
+/** 用事件列表刷新文本，并保持「未修改」状态 */
+function syncTextFromEvents() {
+  suppressDirty = true
+  text.value = eventsToText(props.events)
+  dirty.value = false
+  nextTick(() => {
+    suppressDirty = false
+  })
+}
+
+function focusEnd() {
+  const ta = textareaRef.value
+  if (!ta) return
+  ta.focus()
+  const len = ta.value.length
+  ta.selectionStart = len
+  ta.selectionEnd = len
+}
+
+/** 双击日期：在末尾追加一个空行并把光标移到行尾，方便直接输入 */
+function appendNewLine() {
+  nextTick(() => {
+    suppressDirty = true
+    if (text.value.length > 0 && !text.value.endsWith('\n')) {
+      text.value += '\n'
+    }
+    nextTick(() => {
+      focusEnd()
+      suppressDirty = false
+    })
+  })
+}
+
 function handleKeydown(e: KeyboardEvent) {
   if (e.key === 'Escape') {
     e.preventDefault()
@@ -137,21 +198,25 @@ function handleKeydown(e: KeyboardEvent) {
 
 function handleContextMenu(e: MouseEvent) {
   e.preventDefault()
-  if (!textareaRef.value) return
   const ta = textareaRef.value
-  const pos = ta.selectionStart
+  if (!ta) return
   const lines = text.value.split('\n')
-  let charCount = 0
   let lineIndex = 0
-  for (let i = 0; i < lines.length; i++) {
-    if (charCount + lines[i].length >= pos) {
+  // 优先按点击位置定位行；行高无法计算时退回光标所在行
+  const lineHeight = parseFloat(getComputedStyle(ta).lineHeight)
+  if (Number.isFinite(lineHeight) && lineHeight > 0) {
+    lineIndex = Math.floor((e.offsetY + ta.scrollTop) / lineHeight)
+    lineIndex = Math.max(0, Math.min(lines.length - 1, lineIndex))
+  } else {
+    let charCount = 0
+    const pos = ta.selectionStart
+    for (let i = 0; i < lines.length; i++) {
       lineIndex = i
-      break
+      if (charCount + lines[i].length >= pos) break
+      charCount += lines[i].length + 1
     }
-    charCount += lines[i].length + 1
-    lineIndex = i
   }
-  const line = lines[lineIndex]
+  const line = lines[lineIndex] ?? ''
   if (line.startsWith('✓ ')) {
     lines[lineIndex] = line.slice(2)
   } else if (line.startsWith('✓')) {
@@ -176,8 +241,7 @@ function handleClose() {
 }
 
 watch(() => props.date, () => {
-  text.value = eventsToText(props.events)
-  dirty.value = false
+  syncTextFromEvents()
 })
 
 watch(() => props.visible, (val) => {
@@ -189,31 +253,20 @@ watch(() => props.visible, (val) => {
 })
 
 watch(() => props.events, (newEvents) => {
-  if (!dirty.value) {
-    text.value = eventsToText(newEvents)
-  }
+  if (dirty.value) return
+  suppressDirty = true
+  text.value = eventsToText(newEvents)
+  nextTick(() => {
+    suppressDirty = false
+  })
 }, { deep: true })
 
-watch(() => props.quickAddDate, (val) => {
-  if (val) {
-    nextTick(() => {
-      textareaRef.value?.focus()
-      const len = text.value.length
-      if (len > 0 && !text.value.endsWith('\n')) {
-        text.value += '\n'
-      }
-      nextTick(() => {
-        if (textareaRef.value) {
-          textareaRef.value.selectionStart = textareaRef.value.value.length
-          textareaRef.value.selectionEnd = textareaRef.value.value.length
-        }
-      })
-    })
-  }
+watch(() => props.quickAddToken, () => {
+  appendNewLine()
 })
 
 watch(text, () => {
-  dirty.value = true
+  if (!suppressDirty) dirty.value = true
 })
 </script>
 
@@ -363,13 +416,62 @@ watch(text, () => {
 }
 
 .popup-footer {
-  padding: 6px 16px;
+  padding: 8px 16px;
   border-top: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.bg-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.bg-label {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.bg-swatch {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  transition: transform 0.15s;
+}
+
+.bg-swatch:hover {
+  transform: scale(1.15);
+}
+
+.bg-swatch.active {
+  border-color: var(--text-primary);
+}
+
+.bg-clear {
+  font-size: 11px;
+  color: var(--text-secondary);
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: var(--bg-hover);
+}
+
+.bg-clear:hover {
+  color: var(--text-primary);
+}
+
+.bg-clear.active {
+  color: var(--text-primary);
 }
 
 .footer-hint {
   font-size: 11px;
   color: var(--text-muted);
+  white-space: nowrap;
 }
 
 .popup-enter-active, .popup-leave-active {

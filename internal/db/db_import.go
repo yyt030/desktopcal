@@ -25,12 +25,8 @@ func (d *DB) ImportEvents(events []*model.Event) error {
 	defer stmt.Close()
 
 	for _, e := range events {
-		completed := 0
-		if e.Completed {
-			completed = 1
-		}
 		_, err := stmt.Exec(e.ID, e.Title, e.Description, e.Date,
-			e.StartTime, e.EndTime, e.Color, completed, e.CreatedAt, e.UpdatedAt)
+			e.StartTime, e.EndTime, e.Color, boolToInt(e.Completed), e.CreatedAt, e.UpdatedAt)
 		if err != nil {
 			return err
 		}

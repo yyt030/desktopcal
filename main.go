@@ -57,13 +57,12 @@ func main() {
 	})
 
 	// 原生系统托盘：点击显示窗口，右键菜单显示/退出。
-	menu := app.NewMenu()
-	menu.Add("显示日历").OnClick(func(*application.Context) { win.Show(); win.Focus() })
-	menu.AddSeparator()
-	menu.Add("退出").OnClick(func(*application.Context) { app.Quit() })
-
-	_ = menu
-	// TEMP: tray disabled for isolation
+	// TEMP: tray disabled for isolation —— 恢复托盘时连同下方菜单一起取消注释。
+	// menu := app.NewMenu()
+	// menu.Add("显示日历").OnClick(func(*application.Context) { win.Show(); win.Focus() })
+	// menu.AddSeparator()
+	// menu.Add("退出").OnClick(func(*application.Context) { app.Quit() })
+	//
 	// tray := app.SystemTray.New()
 	// tray.SetIcon(appIcon)
 	// tray.SetTooltip("桌面日历")
