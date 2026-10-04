@@ -88,7 +88,7 @@ make bindings
 - TypeScript strict 模式，不使用 any
 - 路径别名：`@/` 映射到 `frontend/src/`
 - 组件使用 PascalCase 命名
-- Wails 绑定代码（`frontend/bindings/`）不要手动修改，由
+- Wails 绑定代码（`frontend/bindings/`）不要手动修改，由  
   `wails3 generate bindings -ts ./...` 生成
 
 ### 通用
@@ -104,24 +104,28 @@ make bindings
 
 - `frontend/bindings/` 目录由 Wails 自动生成，不要手动编辑
 - 当前使用 Wails **v3**（`wails.json` 的 `$schema` 仍指向 v2 配置，属历史遗留）
-- `main.go` 中系统托盘目前被注释掉（`TEMP: tray disabled for isolation`），恢复时取消相关注释即可
+- 系统托盘在 `main.go` 的 `setupSystemTray` 中实现：左键切换主窗口显隐  
+  （可见且聚焦才隐藏，被遮挡时唤到前台），右键弹出菜单（显示/隐藏/退出）。  
+  菜单栏图标是 `build/darwin/trayicon.png`（纯黑 + alpha 的模板图，系统按  
+  菜单栏明暗自动反色），改动后运行 `build/gen_icon.sh` 重新生成。  
+  退出必须先置 `quitting` 标志再调 `app.Quit()`，否则会被窗口关闭 hook 拦截
 - SQLite 使用 CGO，构建时需要 `CGO_ENABLED=1`
-- macOS 构建的 `CGO_CFLAGS` 与 `CGO_LDFLAGS` 必须带相同的最低版本
-  （`-mmacosx-version-min=12.0`，见 Makefile 的 `MACOS_MIN`），否则会刷屏
+- macOS 构建的 `CGO_CFLAGS` 与 `CGO_LDFLAGS` 必须带相同的最低版本  
+  （`-mmacosx-version-min=12.0`，见 Makefile 的 `MACOS_MIN`），否则会刷屏  
   `built for newer macOS version (12.0) than being linked (10.13)` 链接警告
 - Go 使用自定义 GOROOT：`$(HOME)/.gvm/gos/go1.25.14`
-- 设置项集中在 `app_settings.go` 的 `settingsSpec` 声明（键名 + 编解码）：
-  新增设置项时同步更新 `internal/model/model.go` 的 `DefaultSettings()`、执行
+- 设置项集中在 `app_settings.go` 的 `settingsSpec` 声明（键名 + 编解码）：  
+  新增设置项时同步更新 `internal/model/model.go` 的 `DefaultSettings()`、执行  
   `make bindings` 重新生成绑定，以及 `App.vue` 的初始值
 - 主题的 CSS 变量统一在 `frontend/src/theme.ts` 维护，设置页与根组件共用同一份定义
-- `frontend/src/types.ts` 的前端 DTO 派生自生成模型，不再手写字段：`Event` /
-  `LunarDay` / `Settings` 是生成模型的直接别名，`DayInfo` 仅把 `events` 从
-  `(Event | null)[]` 收窄为 `Event[]`。因此后端加字段后不用改这个文件，只需
+- `frontend/src/types.ts` 的前端 DTO 派生自生成模型，不再手写字段：`Event` /  
+  `LunarDay` / `Settings` 是生成模型的直接别名，`DayInfo` 仅把 `events` 从  
+  `(Event | null)[]` 收窄为 `Event[]`。因此后端加字段后不用改这个文件，只需  
   重新生成绑定
-- `frontend/bindings/` 由 `wails3 generate bindings -ts ./...` 生成。**必须带 `-ts`**，
+- `frontend/bindings/` 由 `wails3 generate bindings -ts ./...` 生成。**必须带 `-ts`**，  
   否则默认输出带 JSDoc 的 `.js`（`@ts-check`）而非 `.ts`
-- 本机 Wails CLI 在 `$(HOME)/.gvm/pkgsets/go1.25.14/global/bin/`：`wails3` 是 v3
+- 本机 Wails CLI 在 `$(HOME)/.gvm/pkgsets/go1.25.14/global/bin/`：`wails3` 是 v3  
   （v3.0.0-beta.27），`wails` 是 v2（v2.16.0），**本工程只能用 `wails3`**
-- 改动 `internal/model` 或新增/删除绑定方法后，必须重新生成绑定，否则
-  `frontend/bindings/` 的类型会落后于后端（历史上就漏过 `Settings.layoutMode`
+- 改动 `internal/model` 或新增/删除绑定方法后，必须重新生成绑定，否则  
+  `frontend/bindings/` 的类型会落后于后端（历史上就漏过 `Settings.layoutMode`  
   与 `DayInfo.isEmpty`）

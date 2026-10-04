@@ -16,4 +16,8 @@ gen 1024 icon_512x512@2x.png
 iconutil -c icns icon.iconset -o icon.icns
 rm -rf icon.iconset
 cp icon_source.png ../appicon.png
-ls -l icon.icns
+
+# 菜单栏模板图标（纯黑 + alpha，系统按菜单栏明暗自动反色）
+swift ../make_tray_icon.swift trayicon.png
+
+ls -l icon.icns trayicon.png
