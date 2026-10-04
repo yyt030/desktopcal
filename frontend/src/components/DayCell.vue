@@ -196,7 +196,7 @@ watch(
 }
 
 .day-number {
-  font-size: 13px;
+  font-size: var(--editor-font-size, 13px);
   font-weight: 500;
   line-height: 1;
 }
@@ -224,7 +224,7 @@ watch(
 }
 
 .lunar-row {
-  font-size: 9px;
+  font-size: calc(var(--editor-font-size, 13px) * 0.7);
   line-height: 1.1;
   text-align: center;
   white-space: nowrap;
@@ -255,7 +255,7 @@ watch(
   position: absolute;
   right: 2px;
   bottom: 0;
-  font-size: 9px;
+  font-size: calc(var(--editor-font-size, 13px) * 0.7);
   line-height: 1.2;
   color: var(--text-secondary);
   background: var(--bg-primary);
@@ -264,7 +264,7 @@ watch(
 }
 
 .event-text {
-  font-size: 9px;
+  font-size: calc(var(--editor-font-size, 13px) * 0.7);
   line-height: 1.2;
   word-break: break-word;
   color: var(--text-primary);

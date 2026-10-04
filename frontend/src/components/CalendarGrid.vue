@@ -72,7 +72,7 @@ const rowCount = computed(() => Math.ceil(props.days.length / 7))
 
 .weekday {
   text-align: center;
-  font-size: 11px;
+  font-size: calc(var(--editor-font-size, 13px) * 0.85);
   color: var(--text-secondary);
   font-weight: 500;
 }
