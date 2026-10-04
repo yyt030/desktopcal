@@ -43,7 +43,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import AppHeader from './components/AppHeader.vue'
 import CalendarGrid from './components/CalendarGrid.vue'
 import EventPopup from './components/EventPopup.vue'
@@ -69,6 +69,7 @@ const currentSettings = ref<Settings>({
   firstDayOfWeek: 0,
   showLunar: true,
   showSolarTerm: true,
+  layoutMode: 'compact',
 })
 
 const selectedDay = computed(() =>
@@ -89,6 +90,7 @@ function prevMonth() {
   } else {
     currentMonth.value--
   }
+  loadMonth()
 }
 
 function nextMonth() {
@@ -98,6 +100,7 @@ function nextMonth() {
   } else {
     currentMonth.value++
   }
+  loadMonth()
 }
 
 function goToday() {
@@ -105,6 +108,7 @@ function goToday() {
   currentYear.value = t.getFullYear()
   currentMonth.value = t.getMonth() + 1
   selectedDate.value = formatDate(t)
+  loadMonth()
 }
 
 function onSelectDay(date: string) {
@@ -239,6 +243,7 @@ async function onSaveSettings(s: Settings) {
   currentSettings.value = s
   await saveSettings(s)
   applySettings(s)
+  await loadMonth()
 }
 
 function formatDate(d: Date): string {
@@ -247,8 +252,6 @@ function formatDate(d: Date): string {
   const day = String(d.getDate()).padStart(2, '0')
   return `${y}-${m}-${day}`
 }
-
-watch([currentYear, currentMonth], loadMonth)
 
 onMounted(async () => {
   await loadMonth()

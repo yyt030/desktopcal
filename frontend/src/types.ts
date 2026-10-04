@@ -29,6 +29,7 @@ export interface DayInfo {
   events: Event[]
   isToday: boolean
   isCurrentMonth: boolean
+  isEmpty: boolean
   bgColor: string
 }
 
@@ -42,4 +43,5 @@ export interface Settings {
   firstDayOfWeek: number
   showLunar: boolean
   showSolarTerm: boolean
+  layoutMode: string
 }

@@ -1,5 +1,10 @@
 <template>
   <div
+    v-if="day.isEmpty"
+    class="day-cell empty"
+  />
+  <div
+    v-else
     class="day-cell"
     :class="{
       today: day.isToday,
@@ -87,6 +92,14 @@ const lunarDisplay = computed(() => {
 
 .day-cell.other-month {
   opacity: 0.35;
+}
+
+.day-cell.empty {
+  cursor: default;
+}
+
+.day-cell.empty:hover {
+  background: transparent;
 }
 
 .day-number-row {

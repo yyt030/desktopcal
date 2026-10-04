@@ -36,6 +36,7 @@ type DayInfo struct {
 	Events    []*Event  `json:"events"`
 	IsToday   bool      `json:"isToday"`
 	IsCurrent bool      `json:"isCurrentMonth"`
+	IsEmpty   bool      `json:"isEmpty"`
 	BgColor   string    `json:"bgColor"`
 }
 
@@ -49,4 +50,5 @@ type Settings struct {
 	FirstDayOfWeek int    `json:"firstDayOfWeek"`
 	ShowLunar      bool   `json:"showLunar"`
 	ShowSolarTerm  bool   `json:"showSolarTerm"`
+	LayoutMode     string `json:"layoutMode"`
 }

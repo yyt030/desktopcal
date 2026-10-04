@@ -40,10 +40,43 @@ func (a *App) GetMonthDays(year, month int) ([]*model.DayInfo, error) {
 	start := time.Date(year, time.Month(month), 1, 0, 0, 0, 0, time.Local)
 	end := start.AddDate(0, 1, -1)
 
-	// 从1号开始按顺序显示当月全部日期，最后一行允许不满
-	totalDays := end.Day()
+	layoutMode := "compact"
+	if v, _ := a.db.GetSetting("layout_mode"); v != "" {
+		layoutMode = v
+	}
+	firstDayOfWeek := 0
+	if v, _ := a.db.GetSetting("first_day_of_week"); v != "" {
+		fmt.Sscanf(v, "%d", &firstDayOfWeek)
+	}
 
-	gridStart := start
+	// 按星期列对齐：1号前的空格数
+	offset := (int(start.Weekday()) - firstDayOfWeek + 7) % 7
+	monthDays := end.Day()
+
+	gridStart := start.AddDate(0, 0, -offset)
+	emptyBefore := 0
+	totalDays := 0
+	isCurrent := today.Year() == year && today.Month() == time.Month(month)
+
+	switch {
+	case layoutMode == "loose":
+		// 宽松模式：每月单独一页，1号前和月末不足部分留空格
+		totalDays = ((offset + monthDays + 6) / 7) * 7
+		emptyBefore = offset
+	case isCurrent:
+		// 紧凑模式当月：今天所在的周居中（上方2行、下方1行），共4周
+		todayOffset := (int(today.Weekday()) - firstDayOfWeek + 7) % 7
+		gridStart = today.AddDate(0, 0, -todayOffset-14)
+		totalDays = 28
+	default:
+		// 紧凑模式其它月：从1号所在的周到月末所在的周，相邻月日期连续补齐，无空格
+		totalDays = ((offset + monthDays + 6) / 7) * 7
+	}
+	emptyAfter := totalDays - emptyBefore - monthDays
+	if layoutMode != "loose" {
+		emptyAfter = 0
+	}
+
 	gridEnd := gridStart.AddDate(0, 0, totalDays-1)
 
 	allEvents, err := a.db.GetEventsByDateRange(gridStart.Format("2006-01-02"), gridEnd.Format("2006-01-02"))
@@ -62,6 +95,15 @@ func (a *App) GetMonthDays(year, month int) ([]*model.DayInfo, error) {
 
 	days := make([]*model.DayInfo, totalDays)
 	for i := 0; i < totalDays; i++ {
+		if i < emptyBefore || i >= totalDays-emptyAfter {
+			// 宽松模式首尾补位空格
+			days[i] = &model.DayInfo{
+				SolarDate: "",
+				Events:    []*model.Event{},
+				IsEmpty:   true,
+			}
+			continue
+		}
 		d := gridStart.AddDate(0, 0, i)
 		dateStr := d.Format("2006-01-02")
 		ld := a.lcal.SolarToLunar(d)

@@ -1,5 +1,13 @@
 <template>
   <div class="calendar">
+    <div class="weekday-row">
+      <span
+        v-for="(w, i) in weekdayLabels"
+        :key="i"
+        class="weekday"
+        :class="{ weekend: w.isWeekend }"
+      >{{ w.label }}</span>
+    </div>
     <div class="grid" :style="{ gridTemplateRows: `repeat(${rowCount}, 1fr)` }">
       <DayCell
         v-for="(day, i) in days"
@@ -33,6 +41,16 @@ defineEmits<{
   quickAdd: [date: string]
 }>()
 
+const allWeekdays = ['日', '一', '二', '三', '四', '五', '六']
+
+// 表头固定顺序（周x）：按设置的"每周第一天"（0=周日，1=周一）排列，列与日期按星期对齐
+const weekdayLabels = computed(() =>
+  Array.from({ length: 7 }, (_, i) => {
+    const dow = (props.firstDayOfWeek + i) % 7
+    return { label: '周' + allWeekdays[dow], isWeekend: dow === 0 || dow === 6 }
+  })
+)
+
 const rowCount = computed(() => Math.ceil(props.days.length / 7))
 </script>
 
@@ -42,6 +60,25 @@ const rowCount = computed(() => Math.ceil(props.days.length / 7))
   display: flex;
   flex-direction: column;
   min-width: 0;
+}
+
+.weekday-row {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  padding: 0 2px 4px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 2px;
+}
+
+.weekday {
+  text-align: center;
+  font-size: 11px;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.weekday.weekend {
+  color: var(--weekend);
 }
 
 .grid {

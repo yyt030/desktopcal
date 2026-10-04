@@ -13,147 +13,170 @@
           </div>
 
           <div class="popup-body">
-            <div class="setting-group">
-              <label class="setting-label">窗口透明度</label>
-              <div class="setting-control">
-                <input
-                  type="range"
-                  min="30"
-                  max="100"
-                  v-model.number="localSettings.opacity"
-                  class="range-input"
-                />
-                <span class="setting-value">{{ localSettings.opacity }}%</span>
-              </div>
-            </div>
+            <nav class="settings-nav">
+              <button
+                v-for="tab in tabs"
+                :key="tab.value"
+                class="nav-item"
+                :class="{ active: activeTab === tab.value }"
+                @click="activeTab = tab.value"
+              >{{ tab.label }}</button>
+            </nav>
 
-            <div class="setting-group">
-              <label class="setting-label">窗口宽度</label>
-              <div class="setting-control">
-                <input
-                  type="range"
-                  min="800"
-                  max="1600"
-                  step="50"
-                  v-model.number="localSettings.width"
-                  class="range-input"
-                />
-                <span class="setting-value">{{ localSettings.width }}px</span>
-              </div>
-            </div>
-
-            <div class="setting-group">
-              <label class="setting-label">窗口高度</label>
-              <div class="setting-control">
-                <input
-                  type="range"
-                  min="500"
-                  max="1000"
-                  step="50"
-                  v-model.number="localSettings.height"
-                  class="range-input"
-                />
-                <span class="setting-value">{{ localSettings.height }}px</span>
-              </div>
-            </div>
-
-            <div class="setting-group">
-              <label class="setting-label">颜色主题</label>
-              <div class="setting-control">
-                <div class="theme-options">
-                  <button
-                    v-for="t in themes"
-                    :key="t.value"
-                    class="theme-btn"
-                    :class="{ active: localSettings.theme === t.value }"
-                    @click="localSettings.theme = t.value"
-                  >
-                    <span class="theme-preview" :style="{ background: t.preview }"></span>
-                    <span>{{ t.label }}</span>
-                  </button>
+            <div class="settings-content">
+              <template v-if="activeTab === 'layout'">
+                <div class="setting-group">
+                  <label class="setting-label">显示模式</label>
+                  <div class="setting-control">
+                    <div class="option-btns">
+                      <button
+                        class="option-btn"
+                        :class="{ active: localSettings.layoutMode === 'compact' }"
+                        @click="localSettings.layoutMode = 'compact'"
+                      >紧凑</button>
+                      <button
+                        class="option-btn"
+                        :class="{ active: localSettings.layoutMode === 'loose' }"
+                        @click="localSettings.layoutMode = 'loose'"
+                      >宽松</button>
+                    </div>
+                    <span class="mode-hint">{{ localSettings.layoutMode === 'compact' ? '月历连续排布，交接处无空格' : '每月单独一页，不混入其它月' }}</span>
+                  </div>
                 </div>
-              </div>
-            </div>
-
-            <div class="setting-group">
-              <label class="setting-label">窗口置顶</label>
-              <div class="setting-control">
-                <button
-                  class="toggle-btn"
-                  :class="{ active: localSettings.alwaysTop }"
-                  @click="localSettings.alwaysTop = !localSettings.alwaysTop"
-                >
-                  {{ localSettings.alwaysTop ? '开启' : '关闭' }}
-                </button>
-              </div>
-            </div>
-
-            <div class="setting-group">
-              <label class="setting-label">编辑框字体大小</label>
-              <div class="setting-control">
-                <input
-                  type="range"
-                  min="10"
-                  max="24"
-                  v-model.number="localSettings.fontSize"
-                  class="range-input"
-                />
-                <span class="setting-value">{{ localSettings.fontSize }}px</span>
-              </div>
-            </div>
-
-            <div class="setting-group">
-              <label class="setting-label">每周第一天</label>
-              <div class="setting-control">
-                <div class="theme-options">
-                  <button
-                    class="theme-btn"
-                    :class="{ active: localSettings.firstDayOfWeek === 0 }"
-                    @click="localSettings.firstDayOfWeek = 0"
-                  >
-                    周日
-                  </button>
-                  <button
-                    class="theme-btn"
-                    :class="{ active: localSettings.firstDayOfWeek === 1 }"
-                    @click="localSettings.firstDayOfWeek = 1"
-                  >
-                    周一
-                  </button>
+                <div class="setting-group">
+                  <label class="setting-label">每周第一天</label>
+                  <div class="setting-control">
+                    <div class="option-btns">
+                      <button
+                        class="option-btn"
+                        :class="{ active: localSettings.firstDayOfWeek === 0 }"
+                        @click="localSettings.firstDayOfWeek = 0"
+                      >周日</button>
+                      <button
+                        class="option-btn"
+                        :class="{ active: localSettings.firstDayOfWeek === 1 }"
+                        @click="localSettings.firstDayOfWeek = 1"
+                      >周一</button>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
+                <div class="setting-group">
+                  <label class="setting-label">显示农历</label>
+                  <div class="setting-control">
+                    <button
+                      class="toggle-btn"
+                      :class="{ active: localSettings.showLunar }"
+                      @click="localSettings.showLunar = !localSettings.showLunar"
+                    >{{ localSettings.showLunar ? '开启' : '关闭' }}</button>
+                  </div>
+                </div>
+                <div class="setting-group">
+                  <label class="setting-label">显示节气</label>
+                  <div class="setting-control">
+                    <button
+                      class="toggle-btn"
+                      :class="{ active: localSettings.showSolarTerm }"
+                      @click="localSettings.showSolarTerm = !localSettings.showSolarTerm"
+                    >{{ localSettings.showSolarTerm ? '开启' : '关闭' }}</button>
+                  </div>
+                </div>
+              </template>
 
-            <div class="setting-group">
-              <label class="setting-label">显示农历</label>
-              <div class="setting-control">
-                <button
-                  class="toggle-btn"
-                  :class="{ active: localSettings.showLunar }"
-                  @click="localSettings.showLunar = !localSettings.showLunar"
-                >
-                  {{ localSettings.showLunar ? '开启' : '关闭' }}
-                </button>
-              </div>
-            </div>
+              <template v-else-if="activeTab === 'appearance'">
+                <div class="setting-group">
+                  <label class="setting-label">颜色主题</label>
+                  <div class="setting-control">
+                    <div class="option-btns">
+                      <button
+                        v-for="t in themes"
+                        :key="t.value"
+                        class="option-btn"
+                        :class="{ active: localSettings.theme === t.value }"
+                        @click="localSettings.theme = t.value"
+                      >
+                        <span class="theme-preview" :style="{ background: t.preview }"></span>
+                        <span>{{ t.label }}</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                <div class="setting-group">
+                  <label class="setting-label">窗口透明度</label>
+                  <div class="setting-control">
+                    <input
+                      type="range"
+                      min="30"
+                      max="100"
+                      v-model.number="localSettings.opacity"
+                      class="range-input"
+                    />
+                    <span class="setting-value">{{ localSettings.opacity }}%</span>
+                  </div>
+                </div>
+                <div class="setting-group">
+                  <label class="setting-label">编辑框字体大小</label>
+                  <div class="setting-control">
+                    <input
+                      type="range"
+                      min="10"
+                      max="24"
+                      v-model.number="localSettings.fontSize"
+                      class="range-input"
+                    />
+                    <span class="setting-value">{{ localSettings.fontSize }}px</span>
+                  </div>
+                </div>
+              </template>
 
-            <div class="setting-group">
-              <label class="setting-label">显示节气</label>
-              <div class="setting-control">
-                <button
-                  class="toggle-btn"
-                  :class="{ active: localSettings.showSolarTerm }"
-                  @click="localSettings.showSolarTerm = !localSettings.showSolarTerm"
-                >
-                  {{ localSettings.showSolarTerm ? '开启' : '关闭' }}
-                </button>
-              </div>
+              <template v-else>
+                <div class="setting-group">
+                  <label class="setting-label">窗口宽度</label>
+                  <div class="setting-control">
+                    <input
+                      type="range"
+                      min="800"
+                      max="1600"
+                      step="50"
+                      v-model.number="localSettings.width"
+                      class="range-input"
+                    />
+                    <span class="setting-value">{{ localSettings.width }}px</span>
+                  </div>
+                </div>
+                <div class="setting-group">
+                  <label class="setting-label">窗口高度</label>
+                  <div class="setting-control">
+                    <input
+                      type="range"
+                      min="500"
+                      max="1000"
+                      step="50"
+                      v-model.number="localSettings.height"
+                      class="range-input"
+                    />
+                    <span class="setting-value">{{ localSettings.height }}px</span>
+                  </div>
+                </div>
+                <div class="setting-group">
+                  <label class="setting-label">窗口置顶</label>
+                  <div class="setting-control">
+                    <button
+                      class="toggle-btn"
+                      :class="{ active: localSettings.alwaysTop }"
+                      @click="localSettings.alwaysTop = !localSettings.alwaysTop"
+                    >{{ localSettings.alwaysTop ? '开启' : '关闭' }}</button>
+                  </div>
+                </div>
+              </template>
             </div>
           </div>
 
           <div class="popup-footer">
-            <button class="btn-form btn-cancel" @click="emit('close')">取消</button>
-            <button class="btn-form btn-save" @click="save">保存</button>
+            <span class="footer-tab-name">{{ currentTabLabel }}</span>
+            <div class="footer-actions">
+              <button class="btn-form btn-cancel" @click="emit('close')">取消</button>
+              <button class="btn-form btn-save" @click="save">保存</button>
+            </div>
           </div>
         </div>
       </div>
@@ -162,7 +185,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import type { Settings } from '../types'
 
 const props = defineProps<{
@@ -175,6 +198,12 @@ const emit = defineEmits<{
   save: [settings: Settings]
 }>()
 
+const tabs = [
+  { value: 'layout', label: '日历布局' },
+  { value: 'appearance', label: '外观' },
+  { value: 'window', label: '窗口' },
+]
+
 const themes = [
   { value: 'dark', label: '深色', preview: '#1e1e2e' },
   { value: 'light', label: '浅色', preview: '#f5f5f5' },
@@ -182,11 +211,18 @@ const themes = [
   { value: 'green', label: '绿色', preview: '#1a3c2e' },
 ]
 
+const activeTab = ref('layout')
+
+const currentTabLabel = computed(
+  () => tabs.find(t => t.value === activeTab.value)?.label ?? ''
+)
+
 const localSettings = ref<Settings>({ ...props.settings })
 
 watch(() => props.visible, (val) => {
   if (val) {
     localSettings.value = { ...props.settings }
+    activeTab.value = 'layout'
   }
 })
 
@@ -209,26 +245,31 @@ function save() {
 }
 
 .settings-popup {
-  width: 400px;
-  background: #1e1e2e;
+  width: 560px;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-secondary, #1e1e2e);
   border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--border, rgba(255, 255, 255, 0.1));
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
   overflow: hidden;
+  color: var(--text-primary, #fff);
 }
 
 .popup-header {
+  flex-shrink: 0;
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 16px 20px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid var(--border, rgba(255, 255, 255, 0.08));
 }
 
 .settings-title {
   font-size: 16px;
   font-weight: 600;
-  color: #fff;
+  color: var(--text-primary, #fff);
   margin: 0;
 }
 
@@ -239,21 +280,71 @@ function save() {
   align-items: center;
   justify-content: center;
   border-radius: 6px;
-  color: rgba(255, 255, 255, 0.6);
-  background: rgba(255, 255, 255, 0.06);
+  color: var(--text-secondary, rgba(255, 255, 255, 0.6));
+  background: var(--bg-hover, rgba(255, 255, 255, 0.06));
   transition: all 0.2s;
 }
 
 .btn-close:hover {
-  background: rgba(255, 255, 255, 0.12);
-  color: #fff;
+  color: var(--text-primary, #fff);
 }
 
 .popup-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+}
+
+.settings-nav {
+  flex-shrink: 0;
+  width: 130px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 16px 10px;
+  border-right: 1px solid var(--border, rgba(255, 255, 255, 0.08));
+  background: var(--bg-primary, rgba(255, 255, 255, 0.02));
+}
+
+.nav-item {
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  text-align: left;
+  color: var(--text-secondary, rgba(255, 255, 255, 0.6));
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.nav-item:hover {
+  background: var(--bg-hover, rgba(255, 255, 255, 0.06));
+  color: var(--text-primary, #fff);
+}
+
+.nav-item.active {
+  background: var(--bg-hover, rgba(74, 144, 217, 0.18));
+  color: var(--accent, #4A90D9);
+  font-weight: 600;
+}
+
+.settings-content {
+  flex: 1;
+  min-width: 0;
+  overflow-y: auto;
   padding: 20px;
   display: flex;
   flex-direction: column;
   gap: 20px;
+}
+
+.settings-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.settings-content::-webkit-scrollbar-thumb {
+  background: var(--border, rgba(255, 255, 255, 0.15));
+  border-radius: 3px;
 }
 
 .setting-group {
@@ -264,14 +355,58 @@ function save() {
 
 .setting-label {
   font-size: 13px;
-  color: rgba(255, 255, 255, 0.8);
-  font-weight: 500;
+  color: var(--text-primary, #fff);
+  font-weight: 600;
 }
 
 .setting-control {
   display: flex;
   align-items: center;
   gap: 12px;
+  flex-wrap: wrap;
+}
+
+.mode-hint {
+  font-size: 11px;
+  color: var(--text-secondary, rgba(255, 255, 255, 0.45));
+}
+
+.option-btns {
+  display: flex;
+  gap: 8px;
+}
+
+.option-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 8px;
+  background: var(--bg-primary, rgba(255, 255, 255, 0.04));
+  border: 1px solid var(--border, transparent);
+  color: var(--text-secondary, rgba(255, 255, 255, 0.7));
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.option-btn:hover {
+  background: var(--bg-hover, rgba(255, 255, 255, 0.08));
+  color: var(--text-primary, #fff);
+}
+
+.option-btn.active {
+  border-color: var(--accent, #4A90D9);
+  background: var(--bg-hover, rgba(255, 255, 255, 0.08));
+  color: var(--text-primary, #fff);
+  font-weight: 600;
+}
+
+.theme-preview {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2px solid var(--border, rgba(255, 255, 255, 0.2));
 }
 
 .range-input {
@@ -279,7 +414,7 @@ function save() {
   height: 4px;
   -webkit-appearance: none;
   appearance: none;
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--border, rgba(255, 255, 255, 0.1));
   border-radius: 2px;
   outline: none;
 }
@@ -290,81 +425,56 @@ function save() {
   width: 14px;
   height: 14px;
   border-radius: 50%;
-  background: #4A90D9;
+  background: var(--accent, #4A90D9);
   cursor: pointer;
 }
 
 .setting-value {
   font-size: 12px;
-  color: rgba(255, 255, 255, 0.5);
+  color: var(--text-primary, rgba(255, 255, 255, 0.5));
   min-width: 50px;
   text-align: right;
-}
-
-.theme-options {
-  display: flex;
-  gap: 8px;
-}
-
-.theme-btn {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  padding: 8px 12px;
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid transparent;
-  color: rgba(255, 255, 255, 0.7);
-  font-size: 11px;
-  cursor: pointer;
-  transition: all 0.15s;
-}
-
-.theme-btn:hover {
-  background: rgba(255, 255, 255, 0.08);
-}
-
-.theme-btn.active {
-  border-color: #4A90D9;
-  color: #fff;
-}
-
-.theme-preview {
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  border: 2px solid rgba(255, 255, 255, 0.2);
 }
 
 .toggle-btn {
   padding: 6px 16px;
   border-radius: 6px;
   font-size: 12px;
-  background: rgba(255, 255, 255, 0.06);
-  color: rgba(255, 255, 255, 0.6);
+  background: var(--bg-primary, rgba(255, 255, 255, 0.06));
+  border: 1px solid var(--border, transparent);
+  color: var(--text-secondary, rgba(255, 255, 255, 0.6));
   transition: all 0.15s;
 }
 
 .toggle-btn.active {
-  background: #4A90D9;
+  background: var(--accent, #4A90D9);
+  border-color: var(--accent, #4A90D9);
   color: #fff;
+  font-weight: 600;
 }
 
 .toggle-btn:hover {
-  background: rgba(255, 255, 255, 0.1);
-}
-
-.toggle-btn.active:hover {
-  background: #3a7bc8;
+  background: var(--bg-hover, rgba(255, 255, 255, 0.1));
 }
 
 .popup-footer {
+  flex-shrink: 0;
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
+  align-items: center;
   gap: 8px;
-  padding: 16px 20px;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 14px 20px;
+  border-top: 1px solid var(--border, rgba(255, 255, 255, 0.08));
+}
+
+.footer-tab-name {
+  font-size: 12px;
+  color: var(--text-secondary, rgba(255, 255, 255, 0.4));
+}
+
+.footer-actions {
+  display: flex;
+  gap: 8px;
 }
 
 .btn-form {
@@ -375,21 +485,18 @@ function save() {
 }
 
 .btn-cancel {
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--text-secondary, rgba(255, 255, 255, 0.6));
   background: transparent;
 }
 
 .btn-cancel:hover {
-  color: #fff;
+  color: var(--text-primary, #fff);
 }
 
 .btn-save {
-  background: #4A90D9;
+  background: var(--accent, #4A90D9);
   color: #fff;
-}
-
-.btn-save:hover {
-  background: #3a7bc8;
+  font-weight: 600;
 }
 
 .popup-enter-active, .popup-leave-active {
