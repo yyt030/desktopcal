@@ -55,6 +55,10 @@ export function GetMonthDays(year: number, month: number): $CancellablePromise<(
     });
 }
 
+export function GetScreenWorkArea(): $CancellablePromise<[number, number, number, number]> {
+    return $Call.ByID(810732443);
+}
+
 export function GetSettings(): $CancellablePromise<model$0.Settings | null> {
     return $Call.ByID(2554697378).then(($result: any) => {
         return $$createType7($result);
@@ -77,6 +81,10 @@ export function GetVersion(): $CancellablePromise<string> {
 
 export function GetWindowPosition(): $CancellablePromise<[number, number]> {
     return $Call.ByID(1683686380);
+}
+
+export function GetWindowSize(): $CancellablePromise<[number, number]> {
+    return $Call.ByID(2496989030);
 }
 
 export function HideWindow(): $CancellablePromise<void> {

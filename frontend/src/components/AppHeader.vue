@@ -58,7 +58,7 @@
 </template>
 
 <script setup lang="ts">
-import { minimiseWindow, maximiseWindow, closeWindow, getWindowPosition, setWindowPosition } from '@/api'
+import { minimiseWindow, maximiseWindow, closeWindow, getWindowPosition, setWindowPosition, getWindowSize, getScreenWorkArea } from '@/api'
 
 defineProps<{
   year: number
@@ -92,6 +92,12 @@ let startX = 0
 let startY = 0
 let startWinX = 0
 let startWinY = 0
+let windowWidth = 0
+let windowHeight = 0
+let screenX = 0
+let screenY = 0
+let screenWidth = 0
+let screenHeight = 0
 
 async function onDragStart(e: MouseEvent) {
   // 只在左键且不在右侧按钮区时开始拖动
@@ -102,7 +108,20 @@ async function onDragStart(e: MouseEvent) {
   isDragging = true
   startX = e.screenX
   startY = e.screenY
-  const pos = await getWindowPosition()
+  
+  // 并行获取窗口尺寸、屏幕工作区和当前位置
+  const [winSize, screenArea, pos] = await Promise.all([
+    getWindowSize(),
+    getScreenWorkArea(),
+    getWindowPosition()
+  ])
+  
+  windowWidth = winSize.width
+  windowHeight = winSize.height
+  screenX = screenArea.x
+  screenY = screenArea.y
+  screenWidth = screenArea.width
+  screenHeight = screenArea.height
   startWinX = pos.x
   startWinY = pos.y
   
@@ -114,7 +133,22 @@ function onDragMove(e: MouseEvent) {
   if (!isDragging) return
   const dx = e.screenX - startX
   const dy = e.screenY - startY
-  setWindowPosition(startWinX + dx, startWinY + dy)
+  
+  // 计算新位置
+  let newX = startWinX + dx
+  let newY = startWinY + dy
+  
+  // 边界约束：确保窗口不会拖出屏幕
+  const minX = screenX
+  const maxX = screenX + screenWidth - windowWidth
+  const minY = screenY
+  const maxY = screenY + screenHeight - windowHeight
+  
+  // 限制窗口位置在屏幕范围内
+  newX = Math.max(minX, Math.min(maxX, newX))
+  newY = Math.max(minY, Math.min(maxY, newY))
+  
+  setWindowPosition(newX, newY)
 }
 
 function onDragEnd() {

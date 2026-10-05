@@ -66,3 +66,21 @@ func (a *App) SetWindowPosition(x, y int) {
 		a.mainWin.SetPosition(x, y)
 	}
 }
+
+func (a *App) GetWindowSize() (int, int) {
+	if a.mainWin != nil {
+		return a.mainWin.Size()
+	}
+	return 0, 0
+}
+
+func (a *App) GetScreenWorkArea() (x, y, width, height int) {
+	if a.mainWin == nil {
+		return 0, 0, 1920, 1080
+	}
+	screen, err := a.mainWin.GetScreen()
+	if err != nil || screen == nil {
+		return 0, 0, 1920, 1080
+	}
+	return screen.WorkArea.X, screen.WorkArea.Y, screen.WorkArea.Width, screen.WorkArea.Height
+}
