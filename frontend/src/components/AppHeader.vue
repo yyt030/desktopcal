@@ -1,5 +1,5 @@
 <template>
-  <header class="header">
+  <header class="header" @mousedown="onDragStart">
     <div class="header-left">
       <h1 class="title">桌面日历</h1>
       <span class="date-display">{{ year }}年{{ month }}月</span>
@@ -36,11 +36,31 @@
           </svg>
         </button>
       </div>
+      <div class="window-controls">
+        <button class="btn btn-window" @click="onMinimise" title="最小化">
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor">
+            <path d="M2 6h8v1H2z"/>
+          </svg>
+        </button>
+        <button class="btn btn-window" @click="onMaximise" title="最大化">
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor">
+            <path d="M3 3h6v6H3V3zm1 1v4h4V4H4z"/>
+          </svg>
+        </button>
+        <button class="btn btn-window btn-close" @click="onClose" title="关闭">
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor">
+            <path d="M3.5 3.5l5 5m0-5l-5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+        </button>
+      </div>
     </div>
   </header>
 </template>
 
 <script setup lang="ts">
+import { ref } from 'vue'
+import { minimiseWindow, maximiseWindow, closeWindow, getWindowPosition, setWindowPosition } from '@/api'
+
 defineProps<{
   year: number
   month: number
@@ -54,6 +74,55 @@ defineEmits<{
   import: []
   settings: []
 }>()
+
+function onMinimise() {
+  minimiseWindow()
+}
+
+function onMaximise() {
+  maximiseWindow()
+}
+
+function onClose() {
+  closeWindow()
+}
+
+// 窗口拖动
+let isDragging = false
+let startX = 0
+let startY = 0
+let startWinX = 0
+let startWinY = 0
+
+async function onDragStart(e: MouseEvent) {
+  // 只在左键且不在右侧按钮区时开始拖动
+  if (e.button !== 0) return
+  const target = e.target as HTMLElement
+  if (target.closest('.header-right')) return
+  
+  isDragging = true
+  startX = e.screenX
+  startY = e.screenY
+  const pos = await getWindowPosition()
+  startWinX = pos.x
+  startWinY = pos.y
+  
+  document.addEventListener('mousemove', onDragMove)
+  document.addEventListener('mouseup', onDragEnd)
+}
+
+function onDragMove(e: MouseEvent) {
+  if (!isDragging) return
+  const dx = e.screenX - startX
+  const dy = e.screenY - startY
+  setWindowPosition(startWinX + dx, startWinY + dy)
+}
+
+function onDragEnd() {
+  isDragging = false
+  document.removeEventListener('mousemove', onDragMove)
+  document.removeEventListener('mouseup', onDragEnd)
+}
 </script>
 
 <style scoped>
@@ -63,13 +132,14 @@ defineEmits<{
   justify-content: space-between;
   padding: 8px 4px;
   flex-shrink: 0;
-  -webkit-app-region: no-drag;
 }
 
 .header-left {
   display: flex;
   align-items: baseline;
   gap: 16px;
+  cursor: default;
+  user-select: none;
 }
 
 .title {
@@ -167,5 +237,34 @@ defineEmits<{
 
 .btn-nav:hover {
   background: var(--bg-hover);
+}
+
+.window-controls {
+  display: flex;
+  gap: 2px;
+  margin-left: 8px;
+  padding-left: 8px;
+  border-left: 1px solid var(--border);
+}
+
+.btn-window {
+  padding: 6px 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+}
+
+.btn-window:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.btn-close:hover {
+  background: #e81123;
+  color: white;
 }
 </style>

@@ -31,3 +31,38 @@ func (a *App) SetWindowAlwaysOnTop(onTop bool) {
 		a.mainWin.SetAlwaysOnTop(onTop)
 	}
 }
+
+func (a *App) MinimiseWindow() {
+	if a.mainWin != nil {
+		a.mainWin.Minimise()
+	}
+}
+
+func (a *App) MaximiseWindow() {
+	if a.mainWin != nil {
+		a.mainWin.ToggleMaximise()
+	}
+}
+
+func (a *App) CloseWindow() {
+	if a.mainWin != nil {
+		a.mainWin.Close()
+	}
+}
+
+func (a *App) GetVersion() string {
+	return GetVersion()
+}
+
+func (a *App) GetWindowPosition() (int, int) {
+	if a.mainWin != nil {
+		return a.mainWin.Position()
+	}
+	return 0, 0
+}
+
+func (a *App) SetWindowPosition(x, y int) {
+	if a.mainWin != nil {
+		a.mainWin.SetPosition(x, y)
+	}
+}

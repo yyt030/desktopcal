@@ -2,6 +2,7 @@ package main
 
 import (
 	"embed"
+	"fmt"
 	"log"
 	"sync/atomic"
 
@@ -17,6 +18,17 @@ var assets embed.FS
 // quitting 标记应用正在退出：窗口关闭 hook 据此放行，
 // 避免 Quit 的清理流程被「只隐藏窗口」的拦截逻辑卡住。
 var quitting atomic.Bool
+
+// 版本信息，通过 ldflags 在编译时注入。
+var (
+	version   = "dev"
+	buildTime = "unknown"
+	gitCommit = "unknown"
+)
+
+func GetVersion() string {
+	return fmt.Sprintf("%s (%s) built at %s", version, gitCommit, buildTime)
+}
 
 func main() {
 	database, err := db.New()

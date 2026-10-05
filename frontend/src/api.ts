@@ -72,3 +72,28 @@ export async function setWindowSize(width: number, height: number): Promise<void
 export async function setWindowAlwaysOnTop(onTop: boolean): Promise<void> {
   return App.SetWindowAlwaysOnTop(onTop)
 }
+
+export async function minimiseWindow(): Promise<void> {
+  return App.MinimiseWindow()
+}
+
+export async function maximiseWindow(): Promise<void> {
+  return App.MaximiseWindow()
+}
+
+export async function closeWindow(): Promise<void> {
+  return App.CloseWindow()
+}
+
+export async function getVersion(): Promise<string> {
+  return App.GetVersion()
+}
+
+export async function getWindowPosition(): Promise<{ x: number; y: number }> {
+  const [x, y] = await App.GetWindowPosition()
+  return { x, y }
+}
+
+export async function setWindowPosition(x: number, y: number): Promise<void> {
+  return App.SetWindowPosition(x, y)
+}

@@ -14,6 +14,10 @@ import { Call as $Call, CancellablePromise as $CancellablePromise, Create as $Cr
 // @ts-ignore: Unused imports
 import * as model$0 from "./internal/model/models.js";
 
+export function CloseWindow(): $CancellablePromise<void> {
+    return $Call.ByID(3642446947);
+}
+
 export function CreateEvent(event: model$0.Event | null): $CancellablePromise<model$0.Event | null> {
     return $Call.ByID(2175910271, event).then(($result: any) => {
         return $$createType1($result);
@@ -60,12 +64,28 @@ export function GetTodaySolarTerm(): $CancellablePromise<string> {
     return $Call.ByID(817696923);
 }
 
+export function GetVersion(): $CancellablePromise<string> {
+    return $Call.ByID(1049863377);
+}
+
+export function GetWindowPosition(): $CancellablePromise<[number, number]> {
+    return $Call.ByID(1683686380);
+}
+
 export function HideWindow(): $CancellablePromise<void> {
     return $Call.ByID(542966029);
 }
 
 export function ImportData(jsonStr: string): $CancellablePromise<void> {
     return $Call.ByID(413583092, jsonStr);
+}
+
+export function MaximiseWindow(): $CancellablePromise<void> {
+    return $Call.ByID(3970934910);
+}
+
+export function MinimiseWindow(): $CancellablePromise<void> {
+    return $Call.ByID(722444756);
 }
 
 export function QuitApp(): $CancellablePromise<void> {
@@ -82,6 +102,10 @@ export function SetDayBackground(date: string, color: string): $CancellablePromi
 
 export function SetWindowAlwaysOnTop(onTop: boolean): $CancellablePromise<void> {
     return $Call.ByID(524274450, onTop);
+}
+
+export function SetWindowPosition(x: number, y: number): $CancellablePromise<void> {
+    return $Call.ByID(1776544976, x, y);
 }
 
 export function SetWindowSize(width: number, height: number): $CancellablePromise<void> {

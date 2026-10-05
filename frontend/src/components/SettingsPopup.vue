@@ -128,7 +128,7 @@
                 </div>
               </template>
 
-              <template v-else>
+              <template v-else-if="activeTab === 'window'">
                 <div class="setting-group">
                   <label class="setting-label">窗口宽度</label>
                   <div class="setting-control">
@@ -168,12 +168,19 @@
                   </div>
                 </div>
               </template>
+
+              <template v-else-if="activeTab === 'about'">
+                <div class="about-section">
+                  <div class="about-app-name">桌面日历</div>
+                  <div class="about-version">{{ versionInfo }}</div>
+                </div>
+              </template>
             </div>
           </div>
 
           <div class="popup-footer">
             <span class="footer-tab-name">{{ currentTabLabel }}</span>
-            <div class="footer-actions">
+            <div v-if="activeTab !== 'about'" class="footer-actions">
               <button class="btn-form btn-cancel" @click="emit('close')">取消</button>
               <button class="btn-form btn-save" @click="save">保存</button>
             </div>
@@ -187,6 +194,7 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import { THEMES } from '../theme'
+import { getVersion } from '../api'
 import type { Settings } from '../types'
 
 const props = defineProps<{
@@ -203,6 +211,7 @@ const tabs = [
   { value: 'layout', label: '日历布局' },
   { value: 'appearance', label: '外观' },
   { value: 'window', label: '窗口' },
+  { value: 'about', label: '关于' },
 ]
 
 // 主题可选项直接复用 theme.ts 的定义，保证设置页与实际生效的主题始终一致
@@ -215,6 +224,9 @@ const currentTabLabel = computed(
 )
 
 const localSettings = ref<Settings>({ ...props.settings })
+const versionInfo = ref('')
+
+getVersion().then(v => { versionInfo.value = v })
 
 watch(() => props.visible, (val) => {
   if (val) {
@@ -452,6 +464,26 @@ function save() {
 
 .toggle-btn:hover {
   background: var(--bg-hover, rgba(255, 255, 255, 0.1));
+}
+
+.about-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 30px 0;
+}
+
+.about-app-name {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-primary, #fff);
+}
+
+.about-version {
+  font-size: 12px;
+  color: var(--text-secondary, rgba(255, 255, 255, 0.45));
+  font-family: monospace;
 }
 
 .popup-footer {
