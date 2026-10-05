@@ -172,6 +172,7 @@
               <template v-else-if="activeTab === 'about'">
                 <div class="about-section">
                   <div class="about-app-name">桌面日历</div>
+                  <div class="about-author">作者：yueyt</div>
                   <div class="about-version">{{ versionInfo }}</div>
                 </div>
               </template>
@@ -478,6 +479,11 @@ function save() {
   font-size: 18px;
   font-weight: 700;
   color: var(--text-primary, #fff);
+}
+
+.about-author {
+  font-size: 13px;
+  color: var(--text-secondary, rgba(255, 255, 255, 0.6));
 }
 
 .about-version {
