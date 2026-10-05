@@ -252,12 +252,13 @@ async function onSetBg(color: string) {
 
 async function onExport() {
   try {
-    const data = await exportData()
+    const data = await exportData(currentYear.value, currentMonth.value)
     const blob = new Blob([data], { type: 'application/json' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = `desktopcal-backup-${formatDate(new Date())}.json`
+    const monthStr = `${currentYear.value}-${String(currentMonth.value).padStart(2, '0')}`
+    a.download = `desktopcal-backup-${monthStr}.json`
     a.click()
     URL.revokeObjectURL(url)
     showToast('数据已导出')

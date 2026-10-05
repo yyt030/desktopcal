@@ -37,8 +37,8 @@ export async function setDayBackground(date: string, color: string): Promise<voi
   return App.SetDayBackground(date, color)
 }
 
-export async function exportData(): Promise<string> {
-  return App.ExportData()
+export async function exportData(year: number, month: number): Promise<string> {
+  return App.ExportData(year, month)
 }
 
 export async function importData(data: string): Promise<void> {

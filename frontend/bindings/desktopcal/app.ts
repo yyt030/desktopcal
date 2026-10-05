@@ -28,8 +28,8 @@ export function DeleteEvent(id: string): $CancellablePromise<void> {
     return $Call.ByID(3362528510, id);
 }
 
-export function ExportData(): $CancellablePromise<string> {
-    return $Call.ByID(2129581603);
+export function ExportData(year: number, month: number): $CancellablePromise<string> {
+    return $Call.ByID(2129581603, year, month);
 }
 
 export function GetEventsByDate(date: string): $CancellablePromise<(model$0.Event | null)[]> {
