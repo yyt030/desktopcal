@@ -2,6 +2,22 @@
 
 package main
 
+/*
+#cgo CFLAGS: -x objective-c
+#cgo LDFLAGS: -framework Cocoa
+#import <Cocoa/Cocoa.h>
+
+void setDockIconVisible(bool visible) {
+    NSApplication *app = [NSApplication sharedApplication];
+    if (visible) {
+        [app setActivationPolicy:NSApplicationActivationPolicyRegular];
+    } else {
+        [app setActivationPolicy:NSApplicationActivationPolicyAccessory];
+    }
+}
+*/
+import "C"
+
 import (
 	_ "embed"
 
@@ -23,4 +39,12 @@ func setupPlatformEvents(app *application.App, win *application.WebviewWindow) {
 		win.Show()
 		win.Focus()
 	})
+}
+
+func setDockIconVisible(visible bool) {
+	C.setDockIconVisible(C.bool(visible))
+}
+
+func shouldStartHidden() bool {
+	return false
 }

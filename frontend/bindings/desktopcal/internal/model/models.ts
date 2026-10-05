@@ -180,6 +180,7 @@ export class Settings {
     "showSolarTerm": boolean;
     "layoutMode": string;
     "hotkey": string;
+    "closeToTray": boolean;
 
     /** Creates a new Settings instance. */
     constructor($$source: Partial<Settings> = {}) {
@@ -215,6 +216,9 @@ export class Settings {
         }
         if (!("hotkey" in $$source)) {
             this["hotkey"] = "";
+        }
+        if (!("closeToTray" in $$source)) {
+            this["closeToTray"] = false;
         }
 
         Object.assign(this, $$source);

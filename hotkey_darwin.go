@@ -117,9 +117,11 @@ func hotkeyTriggered() {
 	if appInstance != nil && appInstance.mainWin != nil {
 		if appInstance.mainWin.IsVisible() {
 			appInstance.mainWin.Hide()
+			setDockIconVisible(false)
 		} else {
 			appInstance.mainWin.Show()
 			appInstance.mainWin.Focus()
+			setDockIconVisible(true)
 		}
 	}
 }

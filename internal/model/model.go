@@ -56,6 +56,7 @@ type Settings struct {
 	ShowSolarTerm  bool   `json:"showSolarTerm"`
 	LayoutMode     string `json:"layoutMode"`
 	Hotkey         string `json:"hotkey"`
+	CloseToTray    bool   `json:"closeToTray"`
 }
 
 // DefaultSettings 返回设置项的默认值：既用于后端读取失败时兜底，
@@ -73,6 +74,7 @@ func DefaultSettings() *Settings {
 		ShowSolarTerm:  true,
 		LayoutMode:     LayoutCompact,
 		Hotkey:         DefaultHotkey(),
+		CloseToTray:    true,
 	}
 }
 

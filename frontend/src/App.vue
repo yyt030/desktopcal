@@ -102,6 +102,7 @@ const currentSettings = ref<Settings>({
   showSolarTerm: true,
   layoutMode: 'compact',
   hotkey: 'cmd+shift+c',
+  closeToTray: true,
 })
 
 const selectedDay = computed(() =>

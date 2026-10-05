@@ -59,7 +59,7 @@ func main() {
 		Height:           750,
 		MinWidth:         900,
 		MinHeight:        600,
-		Hidden:           false,
+		Hidden:           shouldStartHidden(),
 		Frameless:        true,
 		BackgroundColour: application.RGBA{Red: 30, Green: 30, Blue: 46, Alpha: 255},
 		KeyBindings: map[string]func(application.Window){
@@ -67,14 +67,26 @@ func main() {
 		},
 	})
 	service.setRuntimeRefs(app, win)
+	
+	// Windows 启动时隐藏任务栏图标
+	if shouldStartHidden() {
+		setDockIconVisible(false)
+	}
 
-	// 关闭按钮只隐藏窗口，应用保留在系统托盘中。
+	// 关闭按钮根据设置决定是隐藏到托盘还是退出应用。
 	win.RegisterHook(events.Common.WindowClosing, func(e *application.WindowEvent) {
 		if quitting.Load() {
 			return
 		}
-		e.Cancel()
-		win.Hide()
+		settings := service.GetSettings()
+		if settings.CloseToTray {
+			e.Cancel()
+			win.Hide()
+			setDockIconVisible(false)
+		} else {
+			quitting.Store(true)
+			app.Quit()
+		}
 	})
 
 	setupSystemTray(app, win)
@@ -96,8 +108,15 @@ func main() {
 // 窗口级别，破坏用户对窗口位置的摆放。
 func setupSystemTray(app *application.App, win *application.WebviewWindow) {
 	menu := app.NewMenu()
-	menu.Add("显示日历").OnClick(func(*application.Context) { win.Show(); win.Focus() })
-	menu.Add("隐藏窗口").OnClick(func(*application.Context) { win.Hide() })
+	menu.Add("显示日历").OnClick(func(*application.Context) {
+		win.Show()
+		win.Focus()
+		setDockIconVisible(true)
+	})
+	menu.Add("隐藏窗口").OnClick(func(*application.Context) {
+		win.Hide()
+		setDockIconVisible(false)
+	})
 	menu.AddSeparator()
 	menu.Add("退出").OnClick(func(*application.Context) {
 		quitting.Store(true)
@@ -111,9 +130,11 @@ func setupSystemTray(app *application.App, win *application.WebviewWindow) {
 		// 可见且聚焦 → 隐藏；否则唤到前台（被其他窗口遮挡时也能提到最前）。
 		if win.IsVisible() && win.IsFocused() {
 			win.Hide()
+			setDockIconVisible(false)
 		} else {
 			win.Show()
 			win.Focus()
+			setDockIconVisible(true)
 		}
 	})
 }

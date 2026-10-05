@@ -91,6 +91,7 @@ var settingsSpec = []settingCodec{
 	boolSetting("always_top", func(s *model.Settings) *bool { return &s.AlwaysTop }),
 	boolSetting("show_lunar", func(s *model.Settings) *bool { return &s.ShowLunar }),
 	boolSetting("show_solar_term", func(s *model.Settings) *bool { return &s.ShowSolarTerm }),
+	boolSetting("close_to_tray", func(s *model.Settings) *bool { return &s.CloseToTray }),
 }
 
 func (a *App) GetSettings() *model.Settings {

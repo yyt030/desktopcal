@@ -167,6 +167,17 @@
                     >{{ localSettings.alwaysTop ? '开启' : '关闭' }}</button>
                   </div>
                 </div>
+                <div class="setting-group">
+                  <label class="setting-label">关闭时最小化到托盘</label>
+                  <div class="setting-control">
+                    <button
+                      class="toggle-btn"
+                      :class="{ active: localSettings.closeToTray }"
+                      @click="localSettings.closeToTray = !localSettings.closeToTray"
+                    >{{ localSettings.closeToTray ? '开启' : '关闭' }}</button>
+                    <span class="setting-hint">{{ localSettings.closeToTray ? '关闭窗口后保留 in 系统托盘' : '关闭窗口后退出程序' }}</span>
+                  </div>
+                </div>
               </template>
 
               <template v-else-if="activeTab === 'hotkey'">
@@ -437,6 +448,12 @@ function save() {
 .mode-hint {
   font-size: 11px;
   color: var(--text-secondary, rgba(255, 255, 255, 0.45));
+}
+
+.setting-hint {
+  font-size: 11px;
+  color: var(--text-secondary, rgba(255, 255, 255, 0.45));
+  margin-left: 8px;
 }
 
 .option-btns {
