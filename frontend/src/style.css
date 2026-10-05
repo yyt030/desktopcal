@@ -29,9 +29,7 @@ html, body, #app {
   font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "PingFang SC",
     "Microsoft YaHei", "Helvetica Neue", sans-serif;
   color: var(--text-primary);
-  background: transparent;
   -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
 }
 
 body {
@@ -40,8 +38,6 @@ body {
 
 #app {
   background: var(--bg-primary);
-  backdrop-filter: blur(40px);
-  -webkit-backdrop-filter: blur(40px);
 }
 
 ::-webkit-scrollbar {
