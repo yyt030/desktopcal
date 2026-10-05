@@ -13,7 +13,7 @@ NPX ?= npx
 # Wails v3 CLI。注意与 v2 的 `wails` 不是同一个程序，本工程只能用 wails3。
 WAILS3 ?= $(HOME)/.gvm/pkgsets/go1.25.14/global/bin/wails3
 
-.PHONY: dev build frontend clean run bundle bindings
+.PHONY: dev build frontend clean run bundle bindings windows
 
 run: bundle
 	open $(APP_DIR)
@@ -31,6 +31,10 @@ frontend:
 
 build: frontend
 	CGO_ENABLED=1 CGO_CFLAGS="$(CGO_CFLAGS)" CGO_LDFLAGS="$(CGO_LDFLAGS)" GOROOT="$(HOME)/.gvm/gos/go1.25.14" GOMAXPROCS=2 nice -n 15 $(GO) build -p 2 -tags production -ldflags="-w -s" -o $(BUILD_DIR)/$(APP_NAME) .
+
+# Windows 交叉编译：-H windowsgui 隐藏 CMD 黑框
+windows: frontend
+	GOOS=windows GOARCH=amd64 CGO_ENABLED=0 GOROOT="$(HOME)/.gvm/gos/go1.25.14" GOMAXPROCS=2 nice -n 15 $(GO) build -p 2 -tags production -ldflags="-w -s -H windowsgui" -o $(BUILD_DIR)/$(APP_NAME).exe .
 
 clean:
 	rm -rf $(BUILD_DIR) $(FRONTEND_DIR)/dist
