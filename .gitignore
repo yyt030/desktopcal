@@ -1,4 +1,5 @@
 build/bin/
+build/*.log
 frontend/dist/
 frontend/node_modules/
 *.db
