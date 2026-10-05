@@ -19,18 +19,18 @@ run: bundle
 	open $(APP_DIR)
 
 bundle: frontend
-	CGO_ENABLED=1 CGO_CFLAGS="$(CGO_CFLAGS)" CGO_LDFLAGS="$(CGO_LDFLAGS)" GOROOT="$(HOME)/.gvm/gos/go1.25.14" GOMAXPROCS=2 $(GO) build -p 2 -tags production -ldflags="-w -s" -o $(APP_DIR)/Contents/MacOS/$(APP_NAME) .
+	CGO_ENABLED=1 CGO_CFLAGS="$(CGO_CFLAGS)" CGO_LDFLAGS="$(CGO_LDFLAGS)" GOROOT="$(HOME)/.gvm/gos/go1.25.14" GOMAXPROCS=2 nice -n 15 $(GO) build -p 2 -tags production -ldflags="-w -s" -o $(APP_DIR)/Contents/MacOS/$(APP_NAME) .
 
 frontend:
 	test -d $(FRONTEND_DIR)/node_modules || (cd $(FRONTEND_DIR) && $(NPM) install)
-	cd $(FRONTEND_DIR) && $(NPX) vite build
+	cd $(FRONTEND_DIR) && nice -n 15 $(NPX) vite build
 	mkdir -p $(APP_DIR)/Contents/MacOS
 	mkdir -p $(APP_DIR)/Contents/Resources
 	cp build/darwin/Info.plist $(APP_DIR)/Contents/Info.plist
 	cp build/darwin/icon.icns $(APP_DIR)/Contents/Resources/icon.icns
 
 build: frontend
-	CGO_ENABLED=1 CGO_CFLAGS="$(CGO_CFLAGS)" CGO_LDFLAGS="$(CGO_LDFLAGS)" GOROOT="$(HOME)/.gvm/gos/go1.25.14" GOMAXPROCS=2 $(GO) build -p 2 -tags production -ldflags="-w -s" -o $(BUILD_DIR)/$(APP_NAME) .
+	CGO_ENABLED=1 CGO_CFLAGS="$(CGO_CFLAGS)" CGO_LDFLAGS="$(CGO_LDFLAGS)" GOROOT="$(HOME)/.gvm/gos/go1.25.14" GOMAXPROCS=2 nice -n 15 $(GO) build -p 2 -tags production -ldflags="-w -s" -o $(BUILD_DIR)/$(APP_NAME) .
 
 clean:
 	rm -rf $(BUILD_DIR) $(FRONTEND_DIR)/dist
