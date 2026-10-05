@@ -1,5 +1,6 @@
 <template>
   <div class="app-container">
+    <div class="drag-handle"></div>
     <AppHeader
       :year="currentYear"
       :month="currentMonth"
@@ -322,6 +323,16 @@ onBeforeUnmount(() => {
   padding: 8px 12px;
   gap: 8px;
   opacity: var(--app-opacity, 1);
+}
+
+.drag-handle {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 40px;
+  -webkit-app-region: drag;
+  z-index: 1000;
 }
 
 .app-body {

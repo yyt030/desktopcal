@@ -63,6 +63,7 @@ defineEmits<{
   justify-content: space-between;
   padding: 8px 4px;
   flex-shrink: 0;
+  -webkit-app-region: no-drag;
 }
 
 .header-left {

@@ -45,6 +45,7 @@ func main() {
 		MinWidth:         900,
 		MinHeight:        600,
 		Hidden:           false,
+		Frameless:        true,
 		BackgroundColour: application.RGBA{Red: 30, Green: 30, Blue: 46, Alpha: 255},
 		KeyBindings: map[string]func(application.Window){
 			"cmd+w": func(w application.Window) { w.Hide() },
