@@ -14,9 +14,6 @@ import (
 //go:embed all:frontend/dist
 var assets embed.FS
 
-//go:embed build/darwin/trayicon.png
-var trayIcon []byte
-
 // quitting 标记应用正在退出：窗口关闭 hook 据此放行，
 // 避免 Quit 的清理流程被「只隐藏窗口」的拦截逻辑卡住。
 var quitting atomic.Bool
@@ -65,12 +62,7 @@ func main() {
 	})
 
 	setupSystemTray(app, win)
-
-	// Dock 图标重新点击时恢复窗口。
-	app.Event.OnApplicationEvent(events.Mac.ApplicationShouldHandleReopen, func(e *application.ApplicationEvent) {
-		win.Show()
-		win.Focus()
-	})
+	setupPlatformEvents(app, win)
 
 	if err := app.Run(); err != nil {
 		log.Fatal(err)
@@ -80,7 +72,7 @@ func main() {
 // setupSystemTray 创建菜单栏图标：左键切换主窗口显隐，右键弹出菜单。
 // 有意不使用 AttachWindow——那会把窗口强制挪到图标正下方并提升到弹层
 // 窗口级别，破坏用户对窗口位置的摆放。
-func setupSystemTray(app *application.App, win application.Window) {
+func setupSystemTray(app *application.App, win *application.WebviewWindow) {
 	menu := app.NewMenu()
 	menu.Add("显示日历").OnClick(func(*application.Context) { win.Show(); win.Focus() })
 	menu.Add("隐藏窗口").OnClick(func(*application.Context) { win.Hide() })
@@ -91,10 +83,7 @@ func setupSystemTray(app *application.App, win application.Window) {
 	})
 
 	tray := app.SystemTray.New()
-	// 模板图标（纯黑 + alpha）：系统按菜单栏明暗自动反色。
-	tray.SetTemplateIcon(trayIcon)
-	// macOS 不支持托盘 tooltip，此调用仅对 Windows/Linux 生效。
-	tray.SetTooltip("桌面日历")
+	setupPlatformTray(tray)
 	tray.SetMenu(menu)
 	tray.OnClick(func() {
 		// 可见且聚焦 → 隐藏；否则唤到前台（被其他窗口遮挡时也能提到最前）。
