@@ -181,6 +181,7 @@ export class Settings {
     "layoutMode": string;
     "hotkey": string;
     "closeToTray": boolean;
+    "exportPath": string;
 
     /** Creates a new Settings instance. */
     constructor($$source: Partial<Settings> = {}) {
@@ -219,6 +220,9 @@ export class Settings {
         }
         if (!("closeToTray" in $$source)) {
             this["closeToTray"] = false;
+        }
+        if (!("exportPath" in $$source)) {
+            this["exportPath"] = "";
         }
 
         Object.assign(this, $$source);

@@ -88,6 +88,7 @@ var settingsSpec = []settingCodec{
 	stringSetting("theme", func(s *model.Settings) *string { return &s.Theme }),
 	stringSetting("layout_mode", func(s *model.Settings) *string { return &s.LayoutMode }),
 	stringSetting("hotkey", func(s *model.Settings) *string { return &s.Hotkey }),
+	stringSetting("export_path", func(s *model.Settings) *string { return &s.ExportPath }),
 	boolSetting("always_top", func(s *model.Settings) *bool { return &s.AlwaysTop }),
 	boolSetting("show_lunar", func(s *model.Settings) *bool { return &s.ShowLunar }),
 	boolSetting("show_solar_term", func(s *model.Settings) *bool { return &s.ShowSolarTerm }),

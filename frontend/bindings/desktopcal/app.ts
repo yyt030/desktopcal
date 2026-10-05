@@ -32,6 +32,10 @@ export function ExportData(year: number, month: number): $CancellablePromise<str
     return $Call.ByID(2129581603, year, month);
 }
 
+export function ExportDataToFile(year: number, month: number): $CancellablePromise<void> {
+    return $Call.ByID(2707772520, year, month);
+}
+
 export function GetEventsByDate(date: string): $CancellablePromise<(model$0.Event | null)[]> {
     return $Call.ByID(1779793911, date).then(($result: any) => {
         return $$createType2($result);
@@ -101,6 +105,10 @@ export function MaximiseWindow(): $CancellablePromise<void> {
 
 export function MinimiseWindow(): $CancellablePromise<void> {
     return $Call.ByID(722444756);
+}
+
+export function PickDirectory(): $CancellablePromise<string> {
+    return $Call.ByID(1347829059);
 }
 
 export function QuitApp(): $CancellablePromise<void> {

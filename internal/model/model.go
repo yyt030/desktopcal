@@ -57,6 +57,7 @@ type Settings struct {
 	LayoutMode     string `json:"layoutMode"`
 	Hotkey         string `json:"hotkey"`
 	CloseToTray    bool   `json:"closeToTray"`
+	ExportPath     string `json:"exportPath"`
 }
 
 // DefaultSettings 返回设置项的默认值：既用于后端读取失败时兜底，
@@ -75,6 +76,7 @@ func DefaultSettings() *Settings {
 		LayoutMode:     LayoutCompact,
 		Hotkey:         DefaultHotkey(),
 		CloseToTray:    true,
+		ExportPath:     "",
 	}
 }
 

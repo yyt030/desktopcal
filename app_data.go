@@ -3,9 +3,12 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"os"
+	"path/filepath"
 	"time"
 
 	"desktopcal/internal/model"
+	"github.com/wailsapp/wails/v3/pkg/application"
 )
 
 // exportData 是导入导出使用的 JSON 结构，字段与导出文件格式一一对应。
@@ -51,6 +54,34 @@ func (a *App) ExportData(year, month int) (string, error) {
 	return string(b), nil
 }
 
+func (a *App) ExportDataToFile(year, month int) error {
+	monthStr := fmt.Sprintf("%d-%02d", year, month)
+	defaultFilename := fmt.Sprintf("desktopcal-backup-%s.json", monthStr)
+
+	settings := a.GetSettings()
+	exportDir := settings.ExportPath
+	if exportDir == "" {
+		homeDir, err := os.UserHomeDir()
+		if err != nil {
+			return fmt.Errorf("未设置导出路径，且无法获取用户主目录")
+		}
+		exportDir = homeDir
+	}
+
+	savePath := filepath.Join(exportDir, defaultFilename)
+
+	jsonData, err := a.ExportData(year, month)
+	if err != nil {
+		return err
+	}
+
+	if err := os.WriteFile(savePath, []byte(jsonData), 0644); err != nil {
+		return fmt.Errorf("写入文件失败: %w", err)
+	}
+
+	return nil
+}
+
 func (a *App) ImportData(jsonStr string) error {
 	var data exportData
 	if err := json.Unmarshal([]byte(jsonStr), &data); err != nil {
@@ -63,4 +94,24 @@ func (a *App) ImportData(jsonStr string) error {
 		return fmt.Errorf("导入背景失败: %w", err)
 	}
 	return nil
+}
+
+func (a *App) PickDirectory() (string, error) {
+	if a.app == nil || a.app.Dialog == nil {
+		return "", fmt.Errorf("对话框不可用")
+	}
+
+	dialog := a.app.Dialog.OpenFile()
+	dialog.SetMessage("选择导出目录")
+	dialog.SetOptions(&application.OpenFileDialogOptions{
+		CanChooseDirectories: true,
+		CanChooseFiles:       false,
+	})
+
+	dir, err := dialog.PromptForSingleSelection()
+	if err != nil {
+		return "", fmt.Errorf("打开目录选择对话框失败: %w", err)
+	}
+
+	return dir, nil
 }

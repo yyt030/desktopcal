@@ -178,6 +178,17 @@
                     <span class="setting-hint">{{ localSettings.closeToTray ? '关闭窗口后保留 in 系统托盘' : '关闭窗口后退出程序' }}</span>
                   </div>
                 </div>
+                <div class="setting-group">
+                  <label class="setting-label">导出目录</label>
+                  <div class="setting-control">
+                    <div class="path-display">
+                      <span class="path-text" :title="localSettings.exportPath || '未设置'">
+                        {{ localSettings.exportPath || '未设置（默认使用主目录）' }}
+                      </span>
+                    </div>
+                    <button class="btn-pick-path" @click="pickExportPath">选择</button>
+                  </div>
+                </div>
               </template>
 
               <template v-else-if="activeTab === 'hotkey'">
@@ -233,7 +244,7 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import { THEMES } from '../theme'
-import { getVersion } from '../api'
+import { getVersion, pickDirectory } from '../api'
 import type { Settings } from '../types'
 
 const props = defineProps<{
@@ -296,6 +307,17 @@ function captureHotkey(e: KeyboardEvent) {
 function resetHotkey() {
   const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0
   localSettings.value.hotkey = isMac ? 'cmd+shift+c' : 'ctrl+shift+c'
+}
+
+async function pickExportPath() {
+  try {
+    const dir = await pickDirectory()
+    if (dir) {
+      localSettings.value.exportPath = dir
+    }
+  } catch {
+    // 用户取消或出错，忽略
+  }
 }
 
 watch(() => props.visible, (val) => {
@@ -660,6 +682,40 @@ function save() {
 
 .btn-reset:hover {
   background: var(--bg-hover, rgba(255, 255, 255, 0.08));
+  color: var(--text-primary, #fff);
+}
+
+.path-display {
+  flex: 1;
+  min-width: 0;
+  padding: 8px 12px;
+  border-radius: 6px;
+  background: var(--bg-primary, rgba(255, 255, 255, 0.04));
+  border: 1px solid var(--border, rgba(255, 255, 255, 0.1));
+}
+
+.path-text {
+  display: block;
+  font-size: 12px;
+  color: var(--text-secondary, rgba(255, 255, 255, 0.7));
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.btn-pick-path {
+  padding: 8px 14px;
+  border-radius: 6px;
+  font-size: 12px;
+  background: var(--bg-primary, rgba(255, 255, 255, 0.06));
+  border: 1px solid var(--border, rgba(255, 255, 255, 0.1));
+  color: var(--text-secondary, rgba(255, 255, 255, 0.7));
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.btn-pick-path:hover {
+  background: var(--bg-hover, rgba(255, 255, 255, 0.1));
   color: var(--text-primary, #fff);
 }
 </style>
