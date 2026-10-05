@@ -169,6 +169,33 @@
                 </div>
               </template>
 
+              <template v-else-if="activeTab === 'hotkey'">
+                <div class="setting-group">
+                  <label class="setting-label">显示/隐藏窗口</label>
+                  <div class="setting-control">
+                    <div class="hotkey-input-wrapper">
+                      <input
+                        type="text"
+                        class="hotkey-input"
+                        :value="formatHotkey(localSettings.hotkey)"
+                        @keydown.prevent="captureHotkey"
+                        @focus="isCapturing = true"
+                        @blur="isCapturing = false"
+                        placeholder="按下快捷键..."
+                        readonly
+                      />
+                      <button class="btn-reset" @click="resetHotkey" title="重置为默认">
+                        <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor">
+                          <path d="M7 1a6 6 0 1 0 6 6h-1.5A4.5 4.5 0 1 1 7 2.5V1z"/>
+                          <path d="M5.5 1H10v1.5H5.5z"/>
+                        </svg>
+                      </button>
+                    </div>
+                    <span class="mode-hint">{{ isCapturing ? '请按下新的快捷键...' : '点击输入框后按下快捷键' }}</span>
+                  </div>
+                </div>
+              </template>
+
               <template v-else-if="activeTab === 'about'">
                 <div class="about-section">
                   <div class="about-app-name">桌面日历</div>
@@ -212,6 +239,7 @@ const tabs = [
   { value: 'layout', label: '日历布局' },
   { value: 'appearance', label: '外观' },
   { value: 'window', label: '窗口' },
+  { value: 'hotkey', label: '快捷键' },
   { value: 'about', label: '关于' },
 ]
 
@@ -226,8 +254,38 @@ const currentTabLabel = computed(
 
 const localSettings = ref<Settings>({ ...props.settings })
 const versionInfo = ref('')
+const isCapturing = ref(false)
 
 getVersion().then(v => { versionInfo.value = v })
+
+function formatHotkey(hotkey: string): string {
+  if (!hotkey) return ''
+  return hotkey.split('+').map(part => {
+    const map: Record<string, string> = {
+      cmd: '⌘', ctrl: 'Ctrl', alt: 'Alt', shift: 'Shift'
+    }
+    return map[part.toLowerCase()] || part.toUpperCase()
+  }).join('+')
+}
+
+function captureHotkey(e: KeyboardEvent) {
+  const parts: string[] = []
+  if (e.metaKey) parts.push('cmd')
+  if (e.ctrlKey) parts.push('ctrl')
+  if (e.altKey) parts.push('alt')
+  if (e.shiftKey) parts.push('shift')
+  
+  const key = e.key.toLowerCase()
+  if (!['meta', 'control', 'alt', 'shift'].includes(key)) {
+    parts.push(key)
+    localSettings.value.hotkey = parts.join('+')
+  }
+}
+
+function resetHotkey() {
+  const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0
+  localSettings.value.hotkey = isMac ? 'cmd+shift+c' : 'ctrl+shift+c'
+}
 
 watch(() => props.visible, (val) => {
   if (val) {
@@ -544,5 +602,47 @@ function save() {
 
 .popup-enter-from .settings-popup, .popup-leave-to .settings-popup {
   transform: scale(0.95) translateY(10px);
+}
+
+.hotkey-input-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.hotkey-input {
+  flex: 1;
+  padding: 8px 12px;
+  border-radius: 6px;
+  background: var(--bg-primary, rgba(255, 255, 255, 0.04));
+  border: 1px solid var(--border, rgba(255, 255, 255, 0.1));
+  color: var(--text-primary, #fff);
+  font-size: 13px;
+  font-family: monospace;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.hotkey-input:focus {
+  border-color: var(--accent, #4A90D9);
+}
+
+.btn-reset {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  background: var(--bg-primary, rgba(255, 255, 255, 0.04));
+  border: 1px solid var(--border, rgba(255, 255, 255, 0.1));
+  color: var(--text-secondary, rgba(255, 255, 255, 0.6));
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.btn-reset:hover {
+  background: var(--bg-hover, rgba(255, 255, 255, 0.08));
+  color: var(--text-primary, #fff);
 }
 </style>

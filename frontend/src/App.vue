@@ -101,6 +101,7 @@ const currentSettings = ref<Settings>({
   showLunar: true,
   showSolarTerm: true,
   layoutMode: 'compact',
+  hotkey: 'cmd+shift+c',
 })
 
 const selectedDay = computed(() =>

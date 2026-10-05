@@ -80,6 +80,12 @@ func main() {
 	setupSystemTray(app, win)
 	setupPlatformEvents(app, win)
 
+	// 注册全局快捷键
+	settings := service.GetSettings()
+	if hk := ParseHotkey(settings.Hotkey); hk != nil {
+		registerGlobalHotkey(hk)
+	}
+
 	if err := app.Run(); err != nil {
 		log.Fatal(err)
 	}

@@ -39,6 +39,13 @@ export function GetEventsByDate(date: string): $CancellablePromise<(model$0.Even
 }
 
 /**
+ * GetHotkey 返回当前全局快捷键配置。
+ */
+export function GetHotkey(): $CancellablePromise<string> {
+    return $Call.ByID(859888613);
+}
+
+/**
  * GetMonthDays 返回渲染月视图所需的日期格子，包含农历、节气、事件与背景色。
  * 格子数量随显示模式变化：宽松模式补齐整周并留空首尾，紧凑模式连续排布。
  */
@@ -92,12 +99,26 @@ export function QuitApp(): $CancellablePromise<void> {
     return $Call.ByID(3730234565);
 }
 
+/**
+ * ResetHotkey 重置为默认快捷键。
+ */
+export function ResetHotkey(): $CancellablePromise<void> {
+    return $Call.ByID(3841593826);
+}
+
 export function SaveSettings(s: model$0.Settings | null): $CancellablePromise<void> {
     return $Call.ByID(1949631069, s);
 }
 
 export function SetDayBackground(date: string, color: string): $CancellablePromise<void> {
     return $Call.ByID(1454287147, date, color);
+}
+
+/**
+ * SetHotkey 更新全局快捷键并重新注册。
+ */
+export function SetHotkey(hotkey: string): $CancellablePromise<void> {
+    return $Call.ByID(1114980409, hotkey);
 }
 
 export function SetWindowAlwaysOnTop(onTop: boolean): $CancellablePromise<void> {

@@ -58,7 +58,6 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
 import { minimiseWindow, maximiseWindow, closeWindow, getWindowPosition, setWindowPosition } from '@/api'
 
 defineProps<{

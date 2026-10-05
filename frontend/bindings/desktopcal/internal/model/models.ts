@@ -179,6 +179,7 @@ export class Settings {
     "showLunar": boolean;
     "showSolarTerm": boolean;
     "layoutMode": string;
+    "hotkey": string;
 
     /** Creates a new Settings instance. */
     constructor($$source: Partial<Settings> = {}) {
@@ -211,6 +212,9 @@ export class Settings {
         }
         if (!("layoutMode" in $$source)) {
             this["layoutMode"] = "";
+        }
+        if (!("hotkey" in $$source)) {
+            this["hotkey"] = "";
         }
 
         Object.assign(this, $$source);

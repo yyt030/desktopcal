@@ -87,6 +87,7 @@ var settingsSpec = []settingCodec{
 	intSetting("first_day_of_week", func(s *model.Settings) *int { return &s.FirstDayOfWeek }),
 	stringSetting("theme", func(s *model.Settings) *string { return &s.Theme }),
 	stringSetting("layout_mode", func(s *model.Settings) *string { return &s.LayoutMode }),
+	stringSetting("hotkey", func(s *model.Settings) *string { return &s.Hotkey }),
 	boolSetting("always_top", func(s *model.Settings) *bool { return &s.AlwaysTop }),
 	boolSetting("show_lunar", func(s *model.Settings) *bool { return &s.ShowLunar }),
 	boolSetting("show_solar_term", func(s *model.Settings) *bool { return &s.ShowSolarTerm }),
@@ -110,11 +111,21 @@ func (a *App) SaveSettings(s *model.Settings) error {
 	if s == nil {
 		return fmt.Errorf("设置不能为空")
 	}
+	old := a.GetSettings()
 	values := make(map[string]string, len(settingsSpec))
 	for _, item := range settingsSpec {
 		values[item.key()] = item.encode(s)
 	}
-	return a.db.SetSettings(values)
+	if err := a.db.SetSettings(values); err != nil {
+		return err
+	}
+	if old.Hotkey != s.Hotkey {
+		unregisterGlobalHotkey()
+		if hk := ParseHotkey(s.Hotkey); hk != nil {
+			registerGlobalHotkey(hk)
+		}
+	}
+	return nil
 }
 
 // settingKeys 返回全部设置项的键名，用于一次性批量读取。

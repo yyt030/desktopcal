@@ -55,6 +55,7 @@ type Settings struct {
 	ShowLunar      bool   `json:"showLunar"`
 	ShowSolarTerm  bool   `json:"showSolarTerm"`
 	LayoutMode     string `json:"layoutMode"`
+	Hotkey         string `json:"hotkey"`
 }
 
 // DefaultSettings 返回设置项的默认值：既用于后端读取失败时兜底，
@@ -71,5 +72,20 @@ func DefaultSettings() *Settings {
 		ShowLunar:      true,
 		ShowSolarTerm:  true,
 		LayoutMode:     LayoutCompact,
+		Hotkey:         DefaultHotkey(),
 	}
+}
+
+// DefaultHotkey 返回平台相关的默认快捷键。
+func DefaultHotkey() string {
+	// macOS 用 Cmd+Shift+C，其它平台用 Ctrl+Shift+C
+	if isMacOS() {
+		return "cmd+shift+c"
+	}
+	return "ctrl+shift+c"
+}
+
+func isMacOS() bool {
+	// 编译时判断，避免引入 runtime 包
+	return darwin
 }

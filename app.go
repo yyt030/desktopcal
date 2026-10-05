@@ -7,6 +7,9 @@ import (
 	"github.com/wailsapp/wails/v3/pkg/application"
 )
 
+// appInstance 全局引用，供快捷键回调等外部函数访问。
+var appInstance *App
+
 // App 是暴露给前端的绑定服务，聚合数据库、农历计算与窗口控制能力。
 type App struct {
 	app     *application.App
@@ -16,10 +19,12 @@ type App struct {
 }
 
 func NewApp(database *db.DB) *App {
-	return &App{
+	a := &App{
 		db:   database,
 		lcal: lunar.NewCalendar(),
 	}
+	appInstance = a
+	return a
 }
 
 // setRuntimeRefs is called from main once the Wails app and main window exist,
