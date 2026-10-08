@@ -21,7 +21,7 @@ type exportData struct {
 func (a *App) ExportData(year, month int) (string, error) {
 	var events []*model.Event
 	var err error
-	
+
 	if year > 0 && month > 0 {
 		// 导出指定月份的数据
 		startDate := fmt.Sprintf("%d-%02d-01", year, month)
@@ -37,7 +37,32 @@ func (a *App) ExportData(year, month int) (string, error) {
 			return "", fmt.Errorf("导出事件失败: %w", err)
 		}
 	}
-	
+
+	backgrounds, err := a.db.GetAllBackgrounds()
+	if err != nil {
+		return "", fmt.Errorf("导出背景失败: %w", err)
+	}
+	data := exportData{
+		Events:      events,
+		Backgrounds: backgrounds,
+		ExportedAt:  time.Now().Format(time.RFC3339),
+	}
+	b, err := json.MarshalIndent(data, "", "  ")
+	if err != nil {
+		return "", fmt.Errorf("序列化导出数据失败: %w", err)
+	}
+	return string(b), nil
+}
+
+func (a *App) ExportDataRange(startYear, startMonth, endYear, endMonth int) (string, error) {
+	startDate := fmt.Sprintf("%d-%02d-01", startYear, startMonth)
+	endDate := fmt.Sprintf("%d-%02d-31", endYear, endMonth)
+
+	events, err := a.db.GetEventsByDateRange(startDate, endDate)
+	if err != nil {
+		return "", fmt.Errorf("导出事件失败: %w", err)
+	}
+
 	backgrounds, err := a.db.GetAllBackgrounds()
 	if err != nil {
 		return "", fmt.Errorf("导出背景失败: %w", err)
@@ -71,6 +96,34 @@ func (a *App) ExportDataToFile(year, month int) error {
 	savePath := filepath.Join(exportDir, defaultFilename)
 
 	jsonData, err := a.ExportData(year, month)
+	if err != nil {
+		return err
+	}
+
+	if err := os.WriteFile(savePath, []byte(jsonData), 0644); err != nil {
+		return fmt.Errorf("写入文件失败: %w", err)
+	}
+
+	return nil
+}
+
+func (a *App) ExportDataRangeToFile(startYear, startMonth, endYear, endMonth int) error {
+	rangeStr := fmt.Sprintf("%d%02d-%d%02d", startYear, startMonth, endYear, endMonth)
+	defaultFilename := fmt.Sprintf("desktopcal-backup-%s.json", rangeStr)
+
+	settings := a.GetSettings()
+	exportDir := settings.ExportPath
+	if exportDir == "" {
+		homeDir, err := os.UserHomeDir()
+		if err != nil {
+			return fmt.Errorf("未设置导出路径，且无法获取用户主目录")
+		}
+		exportDir = homeDir
+	}
+
+	savePath := filepath.Join(exportDir, defaultFilename)
+
+	jsonData, err := a.ExportDataRange(startYear, startMonth, endYear, endMonth)
 	if err != nil {
 		return err
 	}

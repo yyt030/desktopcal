@@ -32,6 +32,14 @@ export function ExportData(year: number, month: number): $CancellablePromise<str
     return $Call.ByID(2129581603, year, month);
 }
 
+export function ExportDataRange(startYear: number, startMonth: number, endYear: number, endMonth: number): $CancellablePromise<string> {
+    return $Call.ByID(364892120, startYear, startMonth, endYear, endMonth);
+}
+
+export function ExportDataRangeToFile(startYear: number, startMonth: number, endYear: number, endMonth: number): $CancellablePromise<void> {
+    return $Call.ByID(3388923319, startYear, startMonth, endYear, endMonth);
+}
+
 export function ExportDataToFile(year: number, month: number): $CancellablePromise<void> {
     return $Call.ByID(2707772520, year, month);
 }

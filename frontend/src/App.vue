@@ -40,6 +40,7 @@
       :settings="currentSettings"
       @close="showSettings = false"
       @save="onSaveSettings"
+      @toast="showToast"
     />
     <Teleport to="body">
       <Transition name="toast">
@@ -278,18 +279,21 @@ async function onImport() {
   input.click()
 }
 
-/** 应用设置：主题色/透明度/字号走 CSS 变量，窗口尺寸与置顶走原生窗口接口。 */
-function applySettings(s: Settings) {
-  applyAppearance(s)
-  setWindowSize(s.width, s.height)
-  setWindowAlwaysOnTop(s.alwaysTop)
-}
-
 async function onSaveSettings(s: Settings) {
   try {
+    const oldSettings = { ...currentSettings.value }
     await saveSettings(s)
     currentSettings.value = s
-    applySettings(s)
+    // 只在窗口尺寸设置改变时才调整窗口大小
+    if (oldSettings.width !== s.width || oldSettings.height !== s.height) {
+      setWindowSize(s.width, s.height)
+    }
+    // 置顶状态改变时才设置
+    if (oldSettings.alwaysTop !== s.alwaysTop) {
+      setWindowAlwaysOnTop(s.alwaysTop)
+    }
+    // 外观设置（主题、透明度、字号）总是应用
+    applyAppearance(s)
     await loadMonth()
   } catch (err) {
     showToast('保存设置失败：' + errMsg(err))
@@ -300,7 +304,9 @@ onMounted(async () => {
   await loadMonth()
   const s = await getSettings()
   currentSettings.value = s
-  applySettings(s)
+  applyAppearance(s)
+  setWindowSize(s.width, s.height)
+  setWindowAlwaysOnTop(s.alwaysTop)
   dayCheckTimer = window.setInterval(checkRollover, ROLLOVER_CHECK_MS)
 })
 

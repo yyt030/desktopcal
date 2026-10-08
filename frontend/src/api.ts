@@ -41,6 +41,10 @@ export async function exportData(year: number, month: number): Promise<void> {
   return App.ExportDataToFile(year, month)
 }
 
+export async function exportDataRange(startYear: number, startMonth: number, endYear: number, endMonth: number): Promise<void> {
+  return App.ExportDataRangeToFile(startYear, startMonth, endYear, endMonth)
+}
+
 export async function importData(data: string): Promise<void> {
   return App.ImportData(data)
 }

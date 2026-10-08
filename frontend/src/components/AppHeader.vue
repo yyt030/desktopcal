@@ -195,6 +195,7 @@ function onDragEnd() {
   display: flex;
   align-items: center;
   gap: 12px;
+  flex-shrink: 0;
 }
 
 .btn {
@@ -278,6 +279,7 @@ function onDragEnd() {
   margin-left: 8px;
   padding-left: 8px;
   border-left: 1px solid var(--border);
+  flex-shrink: 0;
 }
 
 .btn-window {

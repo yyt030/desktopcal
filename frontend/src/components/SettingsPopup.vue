@@ -178,6 +178,9 @@
                     <span class="setting-hint">{{ localSettings.closeToTray ? '关闭窗口后保留 in 系统托盘' : '关闭窗口后退出程序' }}</span>
                   </div>
                 </div>
+              </template>
+
+              <template v-else-if="activeTab === 'data'">
                 <div class="setting-group">
                   <label class="setting-label">导出目录</label>
                   <div class="setting-control">
@@ -187,6 +190,30 @@
                       </span>
                     </div>
                     <button class="btn-pick-path" @click="pickExportPath">选择</button>
+                  </div>
+                </div>
+                <div class="setting-group">
+                  <label class="setting-label">导出范围</label>
+                  <div class="setting-control">
+                    <div class="option-btns">
+                      <button
+                        class="option-btn"
+                        :class="{ active: exportRange === 'month' }"
+                        @click="exportRange = 'month'"
+                      >单月</button>
+                      <button
+                        class="option-btn"
+                        :class="{ active: exportRange === 'half' }"
+                        @click="exportRange = 'half'"
+                      >半年</button>
+                    </div>
+                  </div>
+                </div>
+                <div class="setting-group">
+                  <label class="setting-label">导出操作</label>
+                  <div class="setting-control">
+                    <button class="btn-export" @click="doExport">立即导出</button>
+                    <span class="setting-hint">{{ exportHint }}</span>
                   </div>
                 </div>
               </template>
@@ -244,7 +271,7 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import { THEMES } from '../theme'
-import { getVersion, pickDirectory } from '../api'
+import { getVersion, pickDirectory, exportData, exportDataRange } from '../api'
 import type { Settings } from '../types'
 
 const props = defineProps<{
@@ -255,12 +282,14 @@ const props = defineProps<{
 const emit = defineEmits<{
   close: []
   save: [settings: Settings]
+  toast: [message: string]
 }>()
 
 const tabs = [
   { value: 'layout', label: '日历布局' },
   { value: 'appearance', label: '外观' },
   { value: 'window', label: '窗口' },
+  { value: 'data', label: '数据' },
   { value: 'hotkey', label: '快捷键' },
   { value: 'about', label: '关于' },
 ]
@@ -277,6 +306,21 @@ const currentTabLabel = computed(
 const localSettings = ref<Settings>({ ...props.settings })
 const versionInfo = ref('')
 const isCapturing = ref(false)
+const exportRange = ref<'month' | 'half'>('month')
+const exportMessage = ref<{ type: 'success' | 'error'; text: string } | null>(null)
+
+const exportHint = computed(() => {
+  const now = new Date()
+  const year = now.getFullYear()
+  const month = now.getMonth() + 1
+  if (exportRange.value === 'month') {
+    return `导出当前月：${year}年${month}月`
+  } else {
+    const startMonth = month <= 6 ? 1 : 7
+    const endMonth = month <= 6 ? 6 : 12
+    return `导出半年：${year}年${startMonth}月 - ${month <= 6 ? 6 : 12}月`
+  }
+})
 
 getVersion().then(v => { versionInfo.value = v })
 
@@ -317,6 +361,25 @@ async function pickExportPath() {
     }
   } catch {
     // 用户取消或出错，忽略
+  }
+}
+
+async function doExport() {
+  try {
+    const now = new Date()
+    const year = now.getFullYear()
+    const month = now.getMonth() + 1
+
+    if (exportRange.value === 'month') {
+      await exportData(year, month)
+    } else {
+      const startMonth = month <= 6 ? 1 : 7
+      const endMonth = month <= 6 ? 6 : 12
+      await exportDataRange(year, startMonth, year, endMonth)
+    }
+    emit('toast', '数据已导出')
+  } catch (err) {
+    emit('toast', '导出失败：' + (err instanceof Error ? err.message : String(err)))
   }
 }
 
@@ -717,5 +780,21 @@ function save() {
 .btn-pick-path:hover {
   background: var(--bg-hover, rgba(255, 255, 255, 0.1));
   color: var(--text-primary, #fff);
+}
+
+.btn-export {
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  background: var(--accent, #4A90D9);
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.btn-export:hover {
+  background: var(--accent-hover, #3a7bc8);
 }
 </style>
