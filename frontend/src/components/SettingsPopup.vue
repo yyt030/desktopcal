@@ -31,16 +31,16 @@
                     <div class="option-btns">
                       <button
                         class="option-btn"
-                        :class="{ active: localSettings.layoutMode === 'compact' }"
-                        @click="localSettings.layoutMode = 'compact'"
-                      >紧凑</button>
-                      <button
-                        class="option-btn"
                         :class="{ active: localSettings.layoutMode === 'loose' }"
                         @click="localSettings.layoutMode = 'loose'"
                       >宽松</button>
+                      <button
+                        class="option-btn"
+                        :class="{ active: localSettings.layoutMode === 'compact' }"
+                        @click="localSettings.layoutMode = 'compact'"
+                      >紧凑</button>
                     </div>
-                    <span class="mode-hint">{{ localSettings.layoutMode === 'compact' ? '月历连续排布，交接处无空格' : '每月单独一页，不混入其它月' }}</span>
+                    <span class="mode-hint">{{ localSettings.layoutMode === 'loose' ? '每月单独一页，不混入其它月' : '月历连续排布，交接处无空格' }}</span>
                   </div>
                 </div>
                 <div class="setting-group">
@@ -49,14 +49,14 @@
                     <div class="option-btns">
                       <button
                         class="option-btn"
-                        :class="{ active: localSettings.firstDayOfWeek === 0 }"
-                        @click="localSettings.firstDayOfWeek = 0"
-                      >周日</button>
-                      <button
-                        class="option-btn"
                         :class="{ active: localSettings.firstDayOfWeek === 1 }"
                         @click="localSettings.firstDayOfWeek = 1"
                       >周一</button>
+                      <button
+                        class="option-btn"
+                        :class="{ active: localSettings.firstDayOfWeek === 0 }"
+                        @click="localSettings.firstDayOfWeek = 0"
+                      >周日</button>
                     </div>
                   </div>
                 </div>
@@ -182,6 +182,14 @@
 
               <template v-else-if="activeTab === 'data'">
                 <div class="setting-group">
+                  <label class="setting-label">数据存储路径</label>
+                  <div class="setting-control">
+                    <div class="path-display">
+                      <span class="path-text" :title="dbPath">{{ dbPath || '加载中...' }}</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="setting-group">
                   <label class="setting-label">导出目录</label>
                   <div class="setting-control">
                     <div class="path-display">
@@ -271,7 +279,7 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import { THEMES } from '../theme'
-import { getVersion, pickDirectory, exportData, exportDataRange } from '../api'
+import { getVersion, pickDirectory, exportData, exportDataRange, getDatabasePath } from '../api'
 import type { Settings } from '../types'
 
 const props = defineProps<{
@@ -305,6 +313,7 @@ const currentTabLabel = computed(
 
 const localSettings = ref<Settings>({ ...props.settings })
 const versionInfo = ref('')
+const dbPath = ref('')
 const isCapturing = ref(false)
 const exportRange = ref<'month' | 'half'>('month')
 const exportMessage = ref<{ type: 'success' | 'error'; text: string } | null>(null)
@@ -323,6 +332,7 @@ const exportHint = computed(() => {
 })
 
 getVersion().then(v => { versionInfo.value = v })
+getDatabasePath().then(p => { dbPath.value = p })
 
 function formatHotkey(hotkey: string): string {
   if (!hotkey) return ''

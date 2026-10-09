@@ -8,10 +8,11 @@
         :class="{ weekend: w.isWeekend }"
       >{{ w.label }}</span>
     </div>
-    <div class="grid" :style="{ gridTemplateRows: `repeat(${rowCount}, 1fr)` }">
+    <div ref="gridRef" class="grid" :style="{ gridTemplateRows: `repeat(${rowCount}, 1fr)` }">
       <DayCell
         v-for="(day, i) in days"
         :key="i"
+        :ref="setDayCellRef"
         :day="day"
         :selected="day.solarDate === selectedDate"
         :show-lunar="showLunar"
@@ -24,7 +25,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import DayCell from './DayCell.vue'
 import type { DayInfo } from '../types'
 
@@ -43,7 +44,6 @@ defineEmits<{
 
 const allWeekdays = ['日', '一', '二', '三', '四', '五', '六']
 
-// 表头固定顺序（周x）：按设置的"每周第一天"（0=周日，1=周一）排列，列与日期按星期对齐
 const weekdayLabels = computed(() =>
   Array.from({ length: 7 }, (_, i) => {
     const dow = (props.firstDayOfWeek + i) % 7
@@ -52,6 +52,34 @@ const weekdayLabels = computed(() =>
 )
 
 const rowCount = computed(() => Math.ceil(props.days.length / 7))
+
+const gridRef = ref<HTMLElement>()
+const dayCellRefs = ref<(InstanceType<typeof DayCell> | null)[]>([])
+
+function setDayCellRef(el: any, index: number) {
+  dayCellRefs.value[index] = el
+}
+
+let observer: ResizeObserver | undefined
+let measureRaf: number | undefined
+
+function measureAll() {
+  if (measureRaf) return
+  measureRaf = requestAnimationFrame(() => {
+    measureRaf = undefined
+    dayCellRefs.value.forEach(cell => cell?.measure())
+  })
+}
+
+onMounted(() => {
+  observer = new ResizeObserver(measureAll)
+  if (gridRef.value) observer.observe(gridRef.value)
+  nextTick(measureAll)
+})
+
+onBeforeUnmount(() => observer?.disconnect())
+
+watch(() => props.days, () => nextTick(measureAll))
 </script>
 
 <style scoped>
@@ -88,5 +116,7 @@ const rowCount = computed(() => Math.ceil(props.days.length / 7))
   padding: 0;
   flex: 1;
   min-height: 0;
+  height: 0;
+  overflow: hidden;
 }
 </style>

@@ -14,6 +14,14 @@ import { Call as $Call, CancellablePromise as $CancellablePromise, Create as $Cr
 // @ts-ignore: Unused imports
 import * as model$0 from "./internal/model/models.js";
 
+/**
+ * BatchSaveEvents 批量保存指定日期的所有事件（事务操作）。
+ * 用于事件编辑器保存时，将多次数据库操作合并为单次事务。
+ */
+export function BatchSaveEvents(date: string, events: (model$0.Event | null)[]): $CancellablePromise<void> {
+    return $Call.ByID(2812834651, date, events);
+}
+
 export function CloseWindow(): $CancellablePromise<void> {
     return $Call.ByID(3642446947);
 }
@@ -42,6 +50,10 @@ export function ExportDataRangeToFile(startYear: number, startMonth: number, end
 
 export function ExportDataToFile(year: number, month: number): $CancellablePromise<void> {
     return $Call.ByID(2707772520, year, month);
+}
+
+export function GetDatabasePath(): $CancellablePromise<string> {
+    return $Call.ByID(368224137);
 }
 
 export function GetEventsByDate(date: string): $CancellablePromise<(model$0.Event | null)[]> {
@@ -128,6 +140,10 @@ export function QuitApp(): $CancellablePromise<void> {
  */
 export function ResetHotkey(): $CancellablePromise<void> {
     return $Call.ByID(3841593826);
+}
+
+export function SaveEditorSize(width: number, height: number): $CancellablePromise<void> {
+    return $Call.ByID(1390215128, width, height);
 }
 
 export function SaveSettings(s: model$0.Settings | null): $CancellablePromise<void> {

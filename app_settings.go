@@ -93,6 +93,8 @@ var settingsSpec = []settingCodec{
 	boolSetting("show_lunar", func(s *model.Settings) *bool { return &s.ShowLunar }),
 	boolSetting("show_solar_term", func(s *model.Settings) *bool { return &s.ShowSolarTerm }),
 	boolSetting("close_to_tray", func(s *model.Settings) *bool { return &s.CloseToTray }),
+	intSetting("editor_width", func(s *model.Settings) *int { return &s.EditorWidth }),
+	intSetting("editor_height", func(s *model.Settings) *int { return &s.EditorHeight }),
 }
 
 func (a *App) GetSettings() *model.Settings {
@@ -137,4 +139,14 @@ func settingKeys() []string {
 		keys[i] = item.key()
 	}
 	return keys
+}
+
+func (a *App) SaveEditorSize(width, height int) error {
+	if width < 300 || height < 200 {
+		return nil
+	}
+	s := a.GetSettings()
+	s.EditorWidth = width
+	s.EditorHeight = height
+	return a.SaveSettings(s)
 }

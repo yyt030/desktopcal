@@ -31,9 +31,12 @@
       :show-lunar="currentSettings.showLunar"
       :show-solar-term="currentSettings.showSolarTerm"
       :bg-color="selectedDay?.bgColor ?? ''"
+      :editor-width="currentSettings.editorWidth"
+      :editor-height="currentSettings.editorHeight"
       @close="showPopup = false"
       @save-lines="onSaveLines"
       @set-bg="onSetBg"
+      @resize="onEditorResize"
     />
     <SettingsPopup
       :visible="showSettings"
@@ -56,7 +59,7 @@ import AppHeader from './components/AppHeader.vue'
 import CalendarGrid from './components/CalendarGrid.vue'
 import EventPopup from './components/EventPopup.vue'
 import SettingsPopup from './components/SettingsPopup.vue'
-import { getMonthDays, createEvent, updateEvent, deleteEvent, exportData, importData, getSettings, saveSettings, setDayBackground, setWindowSize, setWindowAlwaysOnTop } from './api'
+import { getMonthDays, createEvent, updateEvent, deleteEvent, batchSaveEvents, exportData, importData, getSettings, saveSettings, saveEditorSize, setDayBackground, setWindowSize, setWindowAlwaysOnTop } from './api'
 import { formatDate, isSameMonth } from './utils/date'
 import { applyAppearance } from './theme'
 import type { DayInfo, Settings } from './types'
@@ -78,7 +81,7 @@ let anchorToday = formatDate(new Date())
 let dayCheckTimer: number | undefined
 
 /** 跨日检测间隔：每 60 秒做一次纯日期比较，只有日期真的变了才重新加载。 */
-const ROLLOVER_CHECK_MS = 60000
+const ROLLOVER_CHECK_MS = 180000
 
 function showToast(msg: string) {
   toast.value = msg
@@ -98,12 +101,15 @@ const currentSettings = ref<Settings>({
   theme: 'dark',
   alwaysTop: true,
   fontSize: 13,
-  firstDayOfWeek: 0,
+  firstDayOfWeek: 1,
   showLunar: true,
   showSolarTerm: true,
-  layoutMode: 'compact',
+  layoutMode: 'loose',
   hotkey: 'cmd+shift+c',
   closeToTray: true,
+  exportPath: '',
+  editorWidth: 420,
+  editorHeight: 400,
 })
 
 const selectedDay = computed(() =>
@@ -182,58 +188,21 @@ function onDblClickDay(date: string) {
 
 async function onSaveLines(lines: { title: string; completed: boolean }[]) {
   try {
-    const existing = [...selectedEvents.value]
     const date = selectedDate.value
-
-    const matched = new Set<string>()
-    const toCreate: { title: string; completed: boolean }[] = []
-
-    // 第一遍：按标题精确匹配，仅同步完成状态
-    for (const line of lines) {
-      const found = existing.find(e => e.title === line.title && !matched.has(e.id))
-      if (found) {
-        matched.add(found.id)
-        if (found.completed !== line.completed) {
-          await updateEvent({ ...found, completed: line.completed })
-        }
-      } else {
-        toCreate.push(line)
-      }
-    }
-
-    // 第二遍：未匹配上的行优先「改写」未匹配的已有事件，
-    // 保留事件 ID 与创建时间，而不是删旧建新
-    const orphans = existing.filter(e => !matched.has(e.id))
-    const reused = Math.min(orphans.length, toCreate.length)
-    for (let i = 0; i < reused; i++) {
-      await updateEvent({
-        ...orphans[i],
-        title: toCreate[i].title,
-        completed: toCreate[i].completed,
-      })
-      matched.add(orphans[i].id)
-    }
-
-    for (const e of existing) {
-      if (!matched.has(e.id)) {
-        await deleteEvent(e.id)
-      }
-    }
-
-    for (const line of toCreate.slice(reused)) {
-      await createEvent({
-        id: '',
-        title: line.title,
-        description: '',
-        date,
-        startTime: '',
-        endTime: '',
-        color: '#4A90D9',
-        completed: line.completed,
-        createdAt: '',
-        updatedAt: '',
-      })
-    }
+    // 将编辑器行转换为事件对象，使用批量保存（单次事务）
+    const events = lines.map(line => ({
+      id: '',
+      title: line.title,
+      description: '',
+      date,
+      startTime: '',
+      endTime: '',
+      color: '#4A90D9',
+      completed: line.completed,
+      createdAt: '',
+      updatedAt: '',
+    }))
+    await batchSaveEvents(date, events)
   } catch (err) {
     showToast('保存事件失败：' + errMsg(err))
   }
@@ -248,6 +217,16 @@ async function onSetBg(color: string) {
     showToast(color ? '已设置当天背景色' : '已清除背景色')
   } catch (err) {
     showToast('设置背景色失败：' + errMsg(err))
+  }
+}
+
+async function onEditorResize(width: number, height: number) {
+  currentSettings.value.editorWidth = width
+  currentSettings.value.editorHeight = height
+  try {
+    await saveEditorSize(width, height)
+  } catch (err) {
+    console.error('保存编辑器大小失败:', err)
   }
 }
 

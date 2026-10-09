@@ -43,6 +43,15 @@ func (a *App) DeleteEvent(id string) error {
 	return a.db.DeleteEvent(id)
 }
 
+// BatchSaveEvents 批量保存指定日期的所有事件（事务操作）。
+// 用于事件编辑器保存时，将多次数据库操作合并为单次事务。
+func (a *App) BatchSaveEvents(date string, events []*model.Event) error {
+	if date == "" {
+		return fmt.Errorf("日期不能为空")
+	}
+	return a.db.BatchSaveEvents(date, events)
+}
+
 func (a *App) SetDayBackground(date, color string) error {
 	if date == "" {
 		return fmt.Errorf("日期不能为空")

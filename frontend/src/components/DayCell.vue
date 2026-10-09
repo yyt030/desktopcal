@@ -7,6 +7,7 @@
     v-else
     ref="cellRef"
     class="day-cell"
+    :data-date="day.solarDate"
     :class="{
       today: day.isToday,
       selected,
@@ -41,7 +42,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import type { DayInfo } from '../types'
 import { parseLocalDate } from '../utils/date'
 
@@ -76,20 +77,16 @@ const lunarDisplay = computed(() => {
   return props.day.lunar.dayName
 })
 
-// 事件预览按格子高度撑满显示，放不下的裁剪并用 +N 提示剩余条数。
-// 观察根节点（而非随事件数增删的 .events-text），保证格子在任意时机都能
-// 被监听到尺寸变化并重新测量。
 const cellRef = ref<HTMLElement>()
 const fitCount = ref(props.day.events.length)
 const hiddenCount = computed(() => Math.max(0, props.day.events.length - fitCount.value))
 
 const MORE_BADGE_HEIGHT = 13
 
-let observer: ResizeObserver | undefined
-
 function measure() {
   const cell = cellRef.value
-  const box = cell?.querySelector<HTMLElement>('.events-text')
+  if (!cell) return
+  const box = cell.querySelector<HTMLElement>('.events-text')
   if (!box) {
     fitCount.value = 0
     return
@@ -119,29 +116,15 @@ function measure() {
   fitCount.value = Math.min(count, total)
 }
 
-onMounted(() => {
-  observer = new ResizeObserver(() => measure())
-  if (cellRef.value) observer.observe(cellRef.value)
-  nextTick(measure)
-})
-
-onBeforeUnmount(() => observer?.disconnect())
-
-// 根节点会随 day.isEmpty 在 v-if/v-else 间切换，需要重新绑定观察目标
-watch(cellRef, (el, oldEl) => {
-  if (!observer) return
-  if (oldEl) observer.unobserve(oldEl)
-  if (el) observer.observe(el)
-  nextTick(measure)
-})
-
 watch(
-  () => props.day,
+  () => props.day.events.length,
   () => {
     fitCount.value = props.day.events.length
-    nextTick(measure)
+    requestAnimationFrame(measure)
   }
 )
+
+defineExpose({ measure })
 </script>
 
 <style scoped>
@@ -153,7 +136,7 @@ watch(
   cursor: pointer;
   transition: all 0.15s;
   position: relative;
-  min-height: 0;
+  overflow: hidden;
   gap: 1px;
   border-right: 1px solid var(--border);
   border-bottom: 1px solid var(--border);
@@ -266,7 +249,9 @@ watch(
 .event-text {
   font-size: calc(var(--editor-font-size, 13px) * 0.7);
   line-height: 1.2;
-  word-break: break-word;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
   color: var(--text-primary);
   text-align: left;
   padding: 1px 2px;

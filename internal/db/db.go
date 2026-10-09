@@ -11,6 +11,12 @@ import (
 
 type DB struct {
 	conn *sql.DB
+	path string
+}
+
+// Path 返回数据库文件的绝对路径。
+func (d *DB) Path() string {
+	return d.path
 }
 
 // New 打开（必要时创建）应用数据库并完成建表迁移。
@@ -41,7 +47,7 @@ func New() (*DB, error) {
 	conn.SetMaxOpenConns(1)
 	conn.SetMaxIdleConns(1)
 
-	db := &DB{conn: conn}
+	db := &DB{conn: conn, path: dbPath}
 	if err := db.migrate(); err != nil {
 		conn.Close()
 		return nil, err

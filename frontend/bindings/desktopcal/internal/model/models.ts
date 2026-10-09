@@ -182,6 +182,8 @@ export class Settings {
     "hotkey": string;
     "closeToTray": boolean;
     "exportPath": string;
+    "editorWidth": number;
+    "editorHeight": number;
 
     /** Creates a new Settings instance. */
     constructor($$source: Partial<Settings> = {}) {
@@ -223,6 +225,12 @@ export class Settings {
         }
         if (!("exportPath" in $$source)) {
             this["exportPath"] = "";
+        }
+        if (!("editorWidth" in $$source)) {
+            this["editorWidth"] = 0;
+        }
+        if (!("editorHeight" in $$source)) {
+            this["editorHeight"] = 0;
         }
 
         Object.assign(this, $$source);

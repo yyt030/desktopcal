@@ -25,6 +25,10 @@ export async function deleteEvent(id: string): Promise<void> {
   return App.DeleteEvent(id)
 }
 
+export async function batchSaveEvents(date: string, events: Event[]): Promise<void> {
+  return App.BatchSaveEvents(date, events)
+}
+
 export async function getTodayLunar(): Promise<LunarDay> {
   return (await App.GetTodayLunar()) as LunarDay
 }
@@ -61,6 +65,10 @@ export async function saveSettings(settings: Settings): Promise<void> {
   return App.SaveSettings(settings)
 }
 
+export async function saveEditorSize(width: number, height: number): Promise<void> {
+  return App.SaveEditorSize(width, height)
+}
+
 export async function hideWindow(): Promise<void> {
   return App.HideWindow()
 }
@@ -95,6 +103,10 @@ export async function closeWindow(): Promise<void> {
 
 export async function getVersion(): Promise<string> {
   return App.GetVersion()
+}
+
+export async function getDatabasePath(): Promise<string> {
+  return App.GetDatabasePath()
 }
 
 export async function getWindowPosition(): Promise<{ x: number; y: number }> {

@@ -27,17 +27,28 @@ func (a *App) GetMonthDays(year, month int) ([]*model.DayInfo, error) {
 	var totalDays int
 	switch {
 	case layoutMode == model.LayoutLoose:
-		// 宽松模式：每月单独一页，首尾补空对齐整周
-		totalDays = weekAlignedGrid(offset + monthDays)
-		emptyBefore = offset
+		// 宽松模式：每月单独一页，月份居中显示（上下留空）
+		// 计算月份占用的周数，然后居中
+		monthWeeks := weekAlignedGrid(offset + monthDays) / 7
+		// 至少显示 5 周，如果月份占用少于 5 周则居中显示
+		if monthWeeks < 5 {
+			// 计算需要在前补充的空周数，让月份居中
+			paddingWeeks := (5 - monthWeeks) / 2
+			gridStart = gridStart.AddDate(0, 0, -paddingWeeks*7)
+			totalDays = 35
+			emptyBefore = offset + paddingWeeks*7
+		} else {
+			totalDays = weekAlignedGrid(offset + monthDays)
+			emptyBefore = offset
+		}
 	case isCurrent:
-		// 紧凑模式当月：今天所在的周居中（上方 2 行、下方 1 行），共 4 周
+		// 紧凑模式当月：今天所在的周居中（上方 2 周、下方 2 周），共 5 周
 		todayOffset := (int(today.Weekday()) - firstDayOfWeek + 7) % 7
 		gridStart = today.AddDate(0, 0, -todayOffset-14)
-		totalDays = 28
+		totalDays = 35
 	default:
-		// 紧凑模式其它月：从 1 号所在周排到月末所在周，相邻月日期连续补齐，无空格
-		totalDays = weekAlignedGrid(offset + monthDays)
+		// 紧凑模式其它月：从 1 号所在周排到月末所在周，至少 5 周
+		totalDays = max(35, weekAlignedGrid(offset+monthDays))
 	}
 
 	emptyAfter := 0

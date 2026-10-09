@@ -54,6 +54,13 @@ func (a *App) GetVersion() string {
 	return GetVersion()
 }
 
+func (a *App) GetDatabasePath() string {
+	if a.db != nil {
+		return a.db.Path()
+	}
+	return ""
+}
+
 func (a *App) GetWindowPosition() (int, int) {
 	if a.mainWin != nil {
 		return a.mainWin.Position()

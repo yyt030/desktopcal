@@ -2,7 +2,11 @@
   <Teleport to="body">
     <Transition name="popup">
       <div v-if="visible" class="popup-overlay" @click.self="handleClose">
-        <div class="popup">
+        <div
+          ref="popupRef"
+          class="popup"
+          :style="{ width: localWidth + 'px', height: localHeight + 'px' }"
+        >
           <div class="popup-header">
             <div class="popup-header-left">
               <div class="popup-date">
@@ -27,23 +31,20 @@
           </div>
 
           <div class="popup-body">
-            <div class="line-numbers" ref="lineNumbersRef">
-              <div v-for="n in lineCount" :key="n" class="line-num">{{ n }}.</div>
+            <div v-if="lineCount > 1" class="line-numbers" ref="lineNumbersRef">
+              <div v-for="n in lineCount" :key="n" class="line-num" :ref="el => { if (el) lineNumRefs[n - 1] = el as HTMLElement }">{{ n }}.</div>
             </div>
-            <textarea
-              ref="textareaRef"
-              v-model="text"
-              class="events-textarea"
-              placeholder="输入日程，每行一条..."
-              :rows="Math.max(lineCount, 5)"
+            <div
+              ref="editorRef"
+              class="events-editor"
+              contenteditable="true"
               spellcheck="false"
-              autocorrect="off"
-              autocapitalize="off"
-              aria-label="日程内容"
               @scroll="syncScroll"
-              @keydown="handleKeydown"
+              @keydown="handleEditorKeydown"
               @contextmenu="handleContextMenu"
-            ></textarea>
+              @input="onEditorInput"
+              v-editor-content="{ text: text, version: lineSyncVersion }"
+            ></div>
           </div>
 
           <div class="popup-footer">
@@ -64,8 +65,12 @@
                 @click="emit('setBg', '')"
               >清除</button>
             </div>
-            <span class="footer-hint">右键行首加 ✓ 标记完成</span>
+            <span class="footer-hint">右键切换完成状态</span>
           </div>
+          <div
+            class="resize-handle"
+            @mousedown.prevent="startResize"
+          ></div>
         </div>
       </div>
     </Transition>
@@ -73,7 +78,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, nextTick } from 'vue'
+import { ref, computed, watch, nextTick, type ObjectDirective } from 'vue'
 import type { Event, LunarDay } from '../types'
 import { parseLocalDate } from '../utils/date'
 
@@ -88,25 +93,139 @@ const props = defineProps<{
   showLunar: boolean
   showSolarTerm: boolean
   bgColor: string
+  editorWidth: number
+  editorHeight: number
 }>()
 
 const emit = defineEmits<{
   close: []
   saveLines: [lines: { title: string; completed: boolean }[]]
   setBg: [color: string]
+  resize: [width: number, height: number]
 }>()
 
 const weekdays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六']
 
-const bgColors = ['#E74C3C', '#E67E22', '#F1C40F', '#2ECC71', '#3498DB', '#9B59B6']
+const bgColors = ['#E74C3C', '#3498DB', '#2ECC71']
 
 const text = ref('')
-const textareaRef = ref<HTMLTextAreaElement>()
+const editorRef = ref<HTMLDivElement>()
 const lineNumbersRef = ref<HTMLDivElement>()
+const popupRef = ref<HTMLDivElement>()
+const lineNumRefs = ref<HTMLElement[]>([])
 const dirty = ref(false)
+// 本地尺寸状态：打开时从 props 初始化，拖拽缩放时实时更新，关闭时保存到父组件
+const localWidth = ref(props.editorWidth)
+const localHeight = ref(props.editorHeight)
 // 由程序（切换日期 / 双击新增行）改写 text 时，不应把内容标记为「已修改」，
 // 避免关闭时触发一次无意义的保存
 let suppressDirty = false
+
+const MIN_WIDTH = 300
+const MIN_HEIGHT = 250
+
+// 控制 contenteditable 内容何时从数据同步到 DOM。
+// 父容器整体可编辑，子 div 仅做视觉分行。只在结构性变化时重建 DOM，
+// 普通输入不触发重建，保证光标和选区不被打断。
+const lineSyncVersion = ref(0)
+
+function renderEditorContent(el: HTMLElement, txt: string) {
+  const lineArr = txt ? txt.split('\n') : ['']
+  // 保存选区
+  const sel = window.getSelection()
+  let savedOffset = -1
+  if (sel && sel.rangeCount > 0 && el.contains(sel.anchorNode)) {
+    const range = sel.getRangeAt(0)
+    const preRange = range.cloneRange()
+    preRange.selectNodeContents(el)
+    preRange.setEnd(range.startContainer, range.startOffset)
+    savedOffset = preRange.toString().length
+  }
+
+  el.innerHTML = ''
+  for (const line of lineArr) {
+    const div = document.createElement('div')
+    div.className = 'editor-line'
+    const isCompleted = line.startsWith('✓ ') || line.startsWith('✓')
+    if (isCompleted) {
+      div.classList.add('completed')
+      div.textContent = line || '\u00A0'
+    } else {
+      div.textContent = line || '\u00A0'
+    }
+    el.appendChild(div)
+  }
+
+  // 恢复选区
+  if (savedOffset >= 0 && sel) {
+    restoreCaretOffset(el, savedOffset)
+  }
+  // 同步行号高度
+  nextTick(() => syncLineHeights())
+}
+
+function restoreCaretOffset(root: HTMLElement, targetOffset: number) {
+  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT)
+  let offset = 0
+  let node: Text | null = null
+  while (walker.nextNode()) {
+    node = walker.currentNode as Text
+    const len = node.textContent?.length ?? 0
+    if (offset + len >= targetOffset) {
+      const range = document.createRange()
+      const sel = window.getSelection()
+      range.setStart(node, targetOffset - offset)
+      range.collapse(true)
+      sel?.removeAllRanges()
+      sel?.addRange(range)
+      return
+    }
+    offset += len
+  }
+  // 超出范围，放到最后
+  const lastDiv = root.lastElementChild as HTMLElement | null
+  if (lastDiv) {
+    const range = document.createRange()
+    const sel = window.getSelection()
+    range.selectNodeContents(lastDiv)
+    range.collapse(false)
+    sel?.removeAllRanges()
+    sel?.addRange(range)
+  }
+}
+
+const vEditorContent: ObjectDirective<HTMLElement, { text: string; version: number }> = {
+  mounted(el, binding) {
+    renderEditorContent(el, binding.value.text)
+    ;(el as any).__lv = binding.value.version
+  },
+  updated(el, binding) {
+    if (binding.value.version !== (el as any).__lv) {
+      renderEditorContent(el, binding.value.text)
+      ;(el as any).__lv = binding.value.version
+    }
+  },
+}
+
+function startResize(e: MouseEvent) {
+  const startX = e.clientX
+  const startY = e.clientY
+  const startW = localWidth.value
+  const startH = localHeight.value
+  const maxW = window.innerWidth * 0.9
+  const maxH = window.innerHeight * 0.9
+
+  function onMove(ev: MouseEvent) {
+    localWidth.value = Math.min(maxW, Math.max(MIN_WIDTH, startW + ev.clientX - startX))
+    localHeight.value = Math.min(maxH, Math.max(MIN_HEIGHT, startH + ev.clientY - startY))
+  }
+  function onUp() {
+    document.removeEventListener('mousemove', onMove)
+    document.removeEventListener('mouseup', onUp)
+  }
+  document.addEventListener('mousemove', onMove)
+  document.addEventListener('mouseup', onUp)
+}
 
 const displayDay = computed(() => {
   if (!props.date) return ''
@@ -118,11 +237,12 @@ const weekdayName = computed(() => {
   return weekdays[parseLocalDate(props.date).getDay()]
 })
 
-const lineCount = computed(() => {
-  if (!text.value) return 1
-  const count = text.value.split('\n').length
-  return Math.max(count, 1)
+const lines = computed(() => {
+  if (!text.value) return ['']
+  return text.value.split('\n')
 })
+
+const lineCount = computed(() => lines.value.length)
 
 function eventsToText(events: Event[]): string {
   if (events.length === 0) return ''
@@ -146,15 +266,39 @@ function parseLines(txt: string): { title: string; completed: boolean }[] {
 }
 
 function syncScroll() {
-  if (lineNumbersRef.value && textareaRef.value) {
-    lineNumbersRef.value.scrollTop = textareaRef.value.scrollTop
+  if (lineNumbersRef.value && editorRef.value) {
+    lineNumbersRef.value.scrollTop = editorRef.value.scrollTop
   }
+}
+
+// 使用 requestAnimationFrame 节流行号高度同步，避免频繁重排
+// 双重 rAF 确保布局完全完成后再测量
+let syncLineHeightsRaf: number | undefined
+function syncLineHeights() {
+  if (syncLineHeightsRaf) return
+  syncLineHeightsRaf = requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      syncLineHeightsRaf = undefined
+      const editor = editorRef.value
+      if (!editor) return
+      const lineEls = editor.querySelectorAll('.editor-line')
+      lineNumRefs.value.forEach((lineNum, idx) => {
+        const lineEl = lineEls[idx]
+        if (lineNum && lineEl) {
+          const height = lineEl.getBoundingClientRect().height
+          lineNum.style.height = height + 'px'
+          lineNum.style.lineHeight = height + 'px'
+        }
+      })
+    })
+  })
 }
 
 /** 用事件列表刷新文本，并保持「未修改」状态 */
 function syncTextFromEvents() {
   suppressDirty = true
   text.value = eventsToText(props.events)
+  lineSyncVersion.value++
   dirty.value = false
   nextTick(() => {
     suppressDirty = false
@@ -162,12 +306,19 @@ function syncTextFromEvents() {
 }
 
 function focusEnd() {
-  const ta = textareaRef.value
-  if (!ta) return
-  ta.focus()
-  const len = ta.value.length
-  ta.selectionStart = len
-  ta.selectionEnd = len
+  const editor = editorRef.value
+  if (!editor) return
+  editor.focus()
+  const lineEls = editor.querySelectorAll('.editor-line')
+  const lastLine = lineEls[lineEls.length - 1] as HTMLElement | undefined
+  if (lastLine) {
+    const range = document.createRange()
+    const sel = window.getSelection()
+    range.selectNodeContents(lastLine)
+    range.collapse(false)
+    sel?.removeAllRanges()
+    sel?.addRange(range)
+  }
 }
 
 /** 双击日期：在末尾追加一个空行并把光标移到行尾，方便直接输入 */
@@ -177,6 +328,7 @@ function appendNewLine() {
     if (text.value.length > 0 && !text.value.endsWith('\n')) {
       text.value += '\n'
     }
+    lineSyncVersion.value++
     nextTick(() => {
       focusEnd()
       suppressDirty = false
@@ -184,7 +336,75 @@ function appendNewLine() {
   })
 }
 
-function handleKeydown(e: KeyboardEvent) {
+/** 从 DOM 读回各行内容，同步到 text.value */
+function readLinesFromDOM(): string[] {
+  const editor = editorRef.value
+  if (!editor) return ['']
+  const lineEls = editor.querySelectorAll('.editor-line')
+  if (lineEls.length === 0) return ['']
+  const result: string[] = []
+  lineEls.forEach(el => {
+    const content = (el.textContent || '').replace(/\u00A0/g, '')
+    // 如果该行有 completed 类，保留 ✓ 前缀
+    const wasCompleted = el.classList.contains('completed')
+    if (wasCompleted && content) {
+      result.push('✓ ' + content)
+    } else {
+      result.push(content)
+    }
+  })
+  return result
+}
+
+function onEditorInput() {
+  const editor = editorRef.value
+  if (!editor) return
+  // 规范化：确保每个直接子元素是 div.editor-line
+  normalizeEditorDOM(editor)
+  const newLines = readLinesFromDOM()
+  text.value = newLines.join('\n')
+  // 同步行号高度
+  nextTick(() => syncLineHeights())
+}
+
+/** 确保编辑器每个直接子节点是 div.editor-line */
+function normalizeEditorDOM(editor: HTMLElement) {
+  const children = Array.from(editor.childNodes)
+  for (const child of children) {
+    if (child.nodeType === Node.TEXT_NODE) {
+      // 裸文本节点 → 包进 div
+      const text = child.textContent || ''
+      if (text.trim() === '') {
+        child.remove()
+        continue
+      }
+      const div = document.createElement('div')
+      div.className = 'editor-line'
+      div.textContent = text
+      editor.replaceChild(div, child)
+    } else if (child.nodeType === Node.ELEMENT_NODE) {
+      const el = child as HTMLElement
+      if (el.tagName === 'BR') {
+        // <br> → 空行 div
+        const div = document.createElement('div')
+        div.className = 'editor-line'
+        div.textContent = '\u00A0'
+        editor.replaceChild(div, el)
+      } else if (!el.classList.contains('editor-line')) {
+        el.classList.add('editor-line')
+      }
+    }
+  }
+  // 保证至少有一行
+  if (editor.children.length === 0) {
+    const div = document.createElement('div')
+    div.className = 'editor-line'
+    div.textContent = '\u00A0'
+    editor.appendChild(div)
+  }
+}
+
+function handleEditorKeydown(e: KeyboardEvent) {
   if (e.key === 'Escape') {
     e.preventDefault()
     saveAndClose()
@@ -193,41 +413,141 @@ function handleKeydown(e: KeyboardEvent) {
   if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
     e.preventDefault()
     saveAndClose()
+    return
   }
+  if (e.key === 'Enter') {
+    e.preventDefault()
+    insertNewLine()
+    return
+  }
+  // Backspace 在空行开头时删除该行（除非只剩一行）
+  if (e.key === 'Backspace') {
+    const editor = editorRef.value
+    if (!editor) return
+    const lineEls = editor.querySelectorAll('.editor-line')
+    if (lineEls.length <= 1) return
+    const caretInfo = getCaretLineIndex(editor)
+    if (caretInfo >= 0) {
+      const curLine = lineEls[caretInfo] as HTMLElement
+      const content = (curLine.textContent || '').replace(/\u00A0/g, '')
+      if (content === '') {
+        e.preventDefault()
+        curLine.remove()
+        // 确保至少一行
+        if (editor.querySelectorAll('.editor-line').length === 0) {
+          const div = document.createElement('div')
+          div.className = 'editor-line'
+          div.textContent = '\u00A0'
+          editor.appendChild(div)
+        }
+        const newLines = readLinesFromDOM()
+        text.value = newLines.join('\n')
+        // 焦点移到上一行末尾
+        nextTick(() => {
+          const updatedLines = editor.querySelectorAll('.editor-line')
+          const prevIdx = Math.max(0, caretInfo - 1)
+          const prevLine = updatedLines[prevIdx] as HTMLElement | undefined
+          if (prevLine) {
+            prevLine.focus()
+            const range = document.createRange()
+            const sel = window.getSelection()
+            range.selectNodeContents(prevLine)
+            range.collapse(false)
+            sel?.removeAllRanges()
+            sel?.addRange(range)
+          }
+        })
+      }
+    }
+  }
+}
+
+/** 在当前光标位置所在行的下方插入新行 */
+function insertNewLine() {
+  const editor = editorRef.value
+  if (!editor) return
+  const sel = window.getSelection()
+  if (!sel || sel.rangeCount === 0) return
+  const range = sel.getRangeAt(0)
+
+  // 找到光标所在的行 div
+  let lineEl: Node | null = range.startContainer
+  while (lineEl && lineEl !== editor && (lineEl as HTMLElement)?.className !== 'editor-line') {
+    lineEl = lineEl.parentNode
+  }
+  if (!lineEl || lineEl === editor) return
+
+  const lineDiv = lineEl as HTMLElement
+  const newDiv = document.createElement('div')
+  newDiv.className = 'editor-line'
+  newDiv.textContent = '\u00A0'
+
+  // 如果光标在行尾，在后面插入；否则在当前行后插入
+  if (lineDiv.nextSibling) {
+    editor.insertBefore(newDiv, lineDiv.nextSibling)
+  } else {
+    editor.appendChild(newDiv)
+  }
+
+  // 移动光标到新行开头
+  const newRange = document.createRange()
+  newRange.setStart(newDiv, 0)
+  newRange.collapse(true)
+  sel.removeAllRanges()
+  sel.addRange(newRange)
+
+  const newLines = readLinesFromDOM()
+  text.value = newLines.join('\n')
+}
+
+/** 获取光标所在行在编辑器中的索引 */
+function getCaretLineIndex(editor: HTMLElement): number {
+  const sel = window.getSelection()
+  if (!sel || sel.rangeCount === 0) return -1
+  let node: Node | null = sel.getRangeAt(0).startContainer
+  while (node && node !== editor && (node as HTMLElement)?.className !== 'editor-line') {
+    node = node.parentNode
+  }
+  if (!node || node === editor) return -1
+  const lineEls = Array.from(editor.querySelectorAll('.editor-line'))
+  return lineEls.indexOf(node as HTMLElement)
 }
 
 function handleContextMenu(e: MouseEvent) {
   e.preventDefault()
-  const ta = textareaRef.value
-  if (!ta) return
-  const lines = text.value.split('\n')
-  let lineIndex = 0
-  // 优先按点击位置定位行；行高无法计算时退回光标所在行
-  const lineHeight = parseFloat(getComputedStyle(ta).lineHeight)
-  if (Number.isFinite(lineHeight) && lineHeight > 0) {
-    lineIndex = Math.floor((e.offsetY + ta.scrollTop) / lineHeight)
-    lineIndex = Math.max(0, Math.min(lines.length - 1, lineIndex))
-  } else {
-    let charCount = 0
-    const pos = ta.selectionStart
-    for (let i = 0; i < lines.length; i++) {
-      lineIndex = i
-      if (charCount + lines[i].length >= pos) break
-      charCount += lines[i].length + 1
-    }
+  let target = e.target as Node
+  if (target.nodeType === Node.TEXT_NODE) {
+    target = target.parentElement!
   }
-  const line = lines[lineIndex] ?? ''
+  const lineEl = (target as HTMLElement).closest('.editor-line') as HTMLElement | undefined
+  if (!lineEl) return
+  const editor = editorRef.value
+  if (!editor) return
+  const lineEls = Array.from(editor.querySelectorAll('.editor-line'))
+  const idx = lineEls.indexOf(lineEl)
+  if (idx < 0) return
+
+  const newLines = [...lines.value]
+  const line = newLines[idx] ?? ''
   if (line.startsWith('✓ ')) {
-    lines[lineIndex] = line.slice(2)
+    newLines[idx] = line.slice(2)
   } else if (line.startsWith('✓')) {
-    lines[lineIndex] = line.slice(1).trimStart()
+    newLines[idx] = line.slice(1).trimStart()
   } else {
-    lines[lineIndex] = '✓ ' + line
+    newLines[idx] = '✓ ' + line
   }
-  text.value = lines.join('\n')
+  text.value = newLines.join('\n')
+  lineSyncVersion.value++
 }
 
 function saveAndClose() {
+  if (popupRef.value) {
+    const w = Math.round(popupRef.value.offsetWidth)
+    const h = Math.round(popupRef.value.offsetHeight)
+    if (w !== props.editorWidth || h !== props.editorHeight) {
+      emit('resize', w, h)
+    }
+  }
   if (dirty.value) {
     const lines = parseLines(text.value)
     emit('saveLines', lines)
@@ -246,8 +566,10 @@ watch(() => props.date, () => {
 
 watch(() => props.visible, (val) => {
   if (val) {
+    localWidth.value = props.editorWidth
+    localHeight.value = props.editorHeight
     nextTick(() => {
-      textareaRef.value?.focus()
+      focusEnd()
     })
   }
 })
@@ -256,6 +578,7 @@ watch(() => props.events, (newEvents) => {
   if (dirty.value) return
   suppressDirty = true
   text.value = eventsToText(newEvents)
+  lineSyncVersion.value++
   nextTick(() => {
     suppressDirty = false
   })
@@ -283,8 +606,6 @@ watch(text, () => {
 }
 
 .popup {
-  width: 420px;
-  max-height: 70vh;
   display: flex;
   flex-direction: column;
   background: var(--bg-secondary);
@@ -293,6 +614,7 @@ watch(text, () => {
   border: 1px solid var(--border);
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.05);
   overflow: hidden;
+  position: relative;
 }
 
 .popup-header {
@@ -390,29 +712,38 @@ watch(text, () => {
 .line-num {
   font-size: var(--editor-font-size, 13px);
   line-height: 1.6;
-  height: 1.6em;
   color: var(--text-muted);
   text-align: right;
   min-width: 20px;
   font-variant-numeric: tabular-nums;
+  box-sizing: border-box;
+  padding-top: 0;
+  margin: 0;
 }
 
-.events-textarea {
+.events-editor {
   flex: 1;
   background: transparent;
-  border: none;
   color: var(--text-primary);
   font-size: var(--editor-font-size, 13px);
   line-height: 1.6;
-  resize: none;
   outline: none;
   padding: 0 12px 0 4px;
   font-family: inherit;
   min-height: 120px;
+  overflow-y: auto;
+  cursor: text;
 }
 
-.events-textarea::placeholder {
-  color: var(--text-muted);
+.editor-line {
+  min-height: 1.6em;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.editor-line.completed {
+  text-decoration: line-through;
+  color: var(--text-secondary);
 }
 
 .popup-footer {
@@ -484,5 +815,31 @@ watch(text, () => {
 
 .popup-enter-from .popup, .popup-leave-to .popup {
   transform: scale(0.95) translateY(10px);
+}
+
+.resize-handle {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 16px;
+  height: 16px;
+  cursor: nwse-resize;
+  z-index: 10;
+}
+
+.resize-handle::after {
+  content: '';
+  position: absolute;
+  right: 3px;
+  bottom: 3px;
+  width: 8px;
+  height: 8px;
+  border-right: 2px solid var(--text-muted);
+  border-bottom: 2px solid var(--text-muted);
+  opacity: 0.5;
+}
+
+.resize-handle:hover::after {
+  opacity: 1;
 }
 </style>

@@ -103,3 +103,38 @@ func boolToInt(v bool) int {
 	}
 	return 0
 }
+
+// BatchSaveEvents 在单个事务中批量保存指定日期的所有事件（删除旧事件、创建/更新新事件）。
+// 用于事件编辑器保存时，避免多次独立的数据库操作。
+func (d *DB) BatchSaveEvents(date string, events []*model.Event) error {
+	tx, err := d.conn.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	// 删除该日期的所有旧事件
+	if _, err := tx.Exec(`DELETE FROM events WHERE date = ?`, date); err != nil {
+		return err
+	}
+
+	// 批量插入新事件
+	for _, e := range events {
+		now := time.Now().Format(time.RFC3339)
+		if e.ID == "" {
+			e.ID = uuid.New().String()
+			e.CreatedAt = now
+		}
+		e.UpdatedAt = now
+
+		if _, err := tx.Exec(
+			`INSERT INTO events (`+eventColumns+`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+			e.ID, e.Title, e.Description, e.Date,
+			e.StartTime, e.EndTime, e.Color, boolToInt(e.Completed),
+			e.CreatedAt, e.UpdatedAt); err != nil {
+			return err
+		}
+	}
+
+	return tx.Commit()
+}
