@@ -28,7 +28,7 @@ run: bundle
 
 bundle: frontend
 	CGO_ENABLED=1 CGO_CFLAGS="$(CGO_CFLAGS)" CGO_LDFLAGS="$(CGO_LDFLAGS)" GOROOT="$(HOME)/.gvm/gos/go1.25.14" GOMAXPROCS=2 nice -n 15 $(GO) build -p 2 -tags production -ldflags="$(LDFLAGS)" -o $(APP_DIR)/Contents/MacOS/$(APP_NAME) .
-	nice -n 15 upx --best --force-macos $(APP_DIR)/Contents/MacOS/$(APP_NAME)
+	nice -n 15 upx --fast --force-macos $(APP_DIR)/Contents/MacOS/$(APP_NAME)
 
 frontend:
 	test -d $(FRONTEND_DIR)/node_modules || (cd $(FRONTEND_DIR) && $(NPM) install)
@@ -40,12 +40,12 @@ frontend:
 
 build: frontend
 	CGO_ENABLED=1 CGO_CFLAGS="$(CGO_CFLAGS)" CGO_LDFLAGS="$(CGO_LDFLAGS)" GOROOT="$(HOME)/.gvm/gos/go1.25.14" GOMAXPROCS=2 nice -n 15 $(GO) build -p 2 -tags production -ldflags="$(LDFLAGS)" -o $(BUILD_DIR)/$(APP_NAME) .
-	nice -n 15 upx --best --force-macos $(BUILD_DIR)/$(APP_NAME)
+	nice -n 15 upx --fast --force-macos $(BUILD_DIR)/$(APP_NAME)
 
 # Windows 交叉编译：-H windowsgui 隐藏 CMD 黑框
 windows: frontend winres
 	GOOS=windows GOARCH=amd64 CGO_ENABLED=0 GOROOT="$(HOME)/.gvm/gos/go1.25.14" GOMAXPROCS=2 nice -n 15 $(GO) build -p 2 -tags production -ldflags="$(LDFLAGS) -H windowsgui" -o $(BUILD_DIR)/$(APP_NAME).exe .
-	nice -n 15 upx --best $(BUILD_DIR)/$(APP_NAME).exe
+	nice -n 15 upx --fast $(BUILD_DIR)/$(APP_NAME).exe
 
 # 生成 Windows 资源文件（图标、清单）。修改 winres/winres.json 后需重新执行。
 winres:
