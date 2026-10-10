@@ -62,7 +62,7 @@ func setupPlatformEvents(app *application.App, win *application.WebviewWindow) {
 }
 
 func shouldStartHidden() bool {
-	return true
+	return false
 }
 
 func setDockIconVisible(visible bool) {

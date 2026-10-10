@@ -38,6 +38,7 @@ func main() {
 	defer database.Close()
 
 	service := NewApp(database)
+	settings := service.GetSettings()
 
 	app := application.New(application.Options{
 		Name:     "桌面日历",
@@ -55,8 +56,8 @@ func main() {
 
 	win := app.Window.NewWithOptions(application.WebviewWindowOptions{
 		Title:            "桌面日历",
-		Width:            1100,
-		Height:           750,
+		Width:            settings.Width,
+		Height:           settings.Height,
 		MinWidth:         900,
 		MinHeight:        600,
 		Hidden:           shouldStartHidden(),
@@ -78,7 +79,6 @@ func main() {
 		if quitting.Load() {
 			return
 		}
-		settings := service.GetSettings()
 		if settings.CloseToTray {
 			e.Cancel()
 			win.Hide()
@@ -89,11 +89,16 @@ func main() {
 		}
 	})
 
+	// 窗口大小改变时保存新尺寸，下次启动按此尺寸打开。
+	win.RegisterHook(events.Common.WindowDidResize, func(e *application.WindowEvent) {
+		w, h := win.Size()
+		service.SaveWindowSize(w, h)
+	})
+
 	setupSystemTray(app, win)
 	setupPlatformEvents(app, win)
 
 	// 注册全局快捷键
-	settings := service.GetSettings()
 	if hk := ParseHotkey(settings.Hotkey); hk != nil {
 		registerGlobalHotkey(hk)
 	}

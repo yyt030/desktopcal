@@ -1,7 +1,7 @@
 <template>
   <Teleport to="body">
     <Transition name="popup">
-      <div v-if="visible" class="popup-overlay" @click.self="emit('close')">
+      <div v-if="visible" ref="overlayRef" class="popup-overlay" @click.self="emit('close')" @keydown.esc="emit('close')" tabindex="-1">
         <div class="popup settings-popup">
           <div class="popup-header">
             <h2 class="settings-title">设置</h2>
@@ -277,7 +277,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, nextTick, ref, watch } from 'vue'
 import { THEMES } from '../theme'
 import { getVersion, pickDirectory, exportData, exportDataRange, getDatabasePath } from '../api'
 import type { Settings } from '../types'
@@ -311,6 +311,7 @@ const currentTabLabel = computed(
   () => tabs.find(t => t.value === activeTab.value)?.label ?? ''
 )
 
+const overlayRef = ref<HTMLElement>()
 const localSettings = ref<Settings>({ ...props.settings })
 const versionInfo = ref('')
 const dbPath = ref('')
@@ -325,9 +326,11 @@ const exportHint = computed(() => {
   if (exportRange.value === 'month') {
     return `导出当前月：${year}年${month}月`
   } else {
-    const startMonth = month <= 6 ? 1 : 7
-    const endMonth = month <= 6 ? 6 : 12
-    return `导出半年：${year}年${startMonth}月 - ${month <= 6 ? 6 : 12}月`
+    // 最近半年：从6个月前到当前月
+    const startDate = new Date(year, month - 6, 1)
+    const startYear = startDate.getFullYear()
+    const startMonth = startDate.getMonth() + 1
+    return `导出半年：${startYear}年${startMonth}月 - ${year}年${month}月`
   }
 })
 
@@ -383,9 +386,11 @@ async function doExport() {
     if (exportRange.value === 'month') {
       await exportData(year, month)
     } else {
-      const startMonth = month <= 6 ? 1 : 7
-      const endMonth = month <= 6 ? 6 : 12
-      await exportDataRange(year, startMonth, year, endMonth)
+      // 最近半年：从6个月前到当前月
+      const startDate = new Date(year, month - 6, 1)
+      const startYear = startDate.getFullYear()
+      const startMonth = startDate.getMonth() + 1
+      await exportDataRange(startYear, startMonth, year, month)
     }
     emit('toast', '数据已导出')
   } catch (err) {
@@ -397,6 +402,7 @@ watch(() => props.visible, (val) => {
   if (val) {
     localSettings.value = { ...props.settings }
     activeTab.value = 'layout'
+    nextTick(() => overlayRef.value?.focus())
   }
 })
 

@@ -1,5 +1,7 @@
 package main
 
+import "fmt"
+
 // Window controls exposed to the frontend as bound service methods.
 
 func (a *App) HideWindow() {
@@ -90,4 +92,20 @@ func (a *App) GetScreenWorkArea() (x, y, width, height int) {
 		return 0, 0, 1920, 1080
 	}
 	return screen.WorkArea.X, screen.WorkArea.Y, screen.WorkArea.Width, screen.WorkArea.Height
+}
+
+// SaveWindowSize 保存窗口尺寸到设置，供下次启动使用。
+func (a *App) SaveWindowSize(width, height int) {
+	if a.db == nil {
+		return
+	}
+	settings := map[string]string{
+		"width":  intToStr(width),
+		"height": intToStr(height),
+	}
+	a.db.SetSettings(settings)
+}
+
+func intToStr(n int) string {
+	return fmt.Sprintf("%d", n)
 }

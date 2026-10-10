@@ -163,6 +163,10 @@ defineExpose({ measure })
   opacity: 0.35;
 }
 
+.day-cell.weekend {
+  background: var(--weekend-bg);
+}
+
 .day-cell.empty {
   cursor: default;
 }

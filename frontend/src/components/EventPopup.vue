@@ -1,7 +1,7 @@
 <template>
   <Teleport to="body">
     <Transition name="popup">
-      <div v-if="visible" class="popup-overlay" @click.self="handleClose">
+      <div v-if="visible" class="popup-overlay">
         <div
           ref="popupRef"
           class="popup"
