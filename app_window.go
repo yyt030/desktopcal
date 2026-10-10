@@ -67,37 +67,6 @@ func (a *App) GetDatabasePath() string {
 	return ""
 }
 
-func (a *App) GetWindowPosition() (int, int) {
-	if a.mainWin != nil {
-		return a.mainWin.Position()
-	}
-	return 0, 0
-}
-
-func (a *App) SetWindowPosition(x, y int) {
-	if a.mainWin != nil {
-		a.mainWin.SetPosition(x, y)
-	}
-}
-
-func (a *App) GetWindowSize() (int, int) {
-	if a.mainWin != nil {
-		return a.mainWin.Size()
-	}
-	return 0, 0
-}
-
-func (a *App) GetScreenWorkArea() (x, y, width, height int) {
-	if a.mainWin == nil {
-		return 0, 0, 1920, 1080
-	}
-	screen, err := a.mainWin.GetScreen()
-	if err != nil || screen == nil {
-		return 0, 0, 1920, 1080
-	}
-	return screen.WorkArea.X, screen.WorkArea.Y, screen.WorkArea.Width, screen.WorkArea.Height
-}
-
 // SaveWindowSize 保存窗口尺寸到设置，供下次启动使用。
 // 使用防抖避免拖拽调整时频繁写数据库：500ms 内多次调用只执行最后一次。
 var (

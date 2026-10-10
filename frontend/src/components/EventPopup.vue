@@ -215,11 +215,28 @@ function startResize(e: MouseEvent) {
   const maxW = window.innerWidth * 0.9
   const maxH = window.innerHeight * 0.9
 
+  // rAF 节流：mousemove 高频触发，直接写响应式变量会每事件重渲染一次
+  let raf = 0
+  let pendingW = 0
+  let pendingH = 0
   function onMove(ev: MouseEvent) {
-    localWidth.value = Math.min(maxW, Math.max(MIN_WIDTH, startW + ev.clientX - startX))
-    localHeight.value = Math.min(maxH, Math.max(MIN_HEIGHT, startH + ev.clientY - startY))
+    pendingW = Math.min(maxW, Math.max(MIN_WIDTH, startW + ev.clientX - startX))
+    pendingH = Math.min(maxH, Math.max(MIN_HEIGHT, startH + ev.clientY - startY))
+    if (raf) return
+    raf = requestAnimationFrame(() => {
+      raf = 0
+      localWidth.value = pendingW
+      localHeight.value = pendingH
+    })
   }
   function onUp() {
+    // 有未落帧的尺寸时先落地，避免松手时停在上一帧
+    if (raf) {
+      cancelAnimationFrame(raf)
+      raf = 0
+      localWidth.value = pendingW
+      localHeight.value = pendingH
+    }
     document.removeEventListener('mousemove', onMove)
     document.removeEventListener('mouseup', onUp)
   }
@@ -602,7 +619,6 @@ watch(text, () => {
   align-items: center;
   justify-content: center;
   z-index: 1000;
-  backdrop-filter: blur(4px);
 }
 
 .popup {

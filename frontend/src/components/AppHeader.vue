@@ -1,5 +1,6 @@
 <template>
-  <header class="header" @mousedown="onDragStart">
+  <!-- header 通过 --wails-draggable 交给 Wails 原生拖动，右侧按钮区已禁用 -->
+  <header class="header">
     <div class="header-left">
       <h1 class="title">桌面日历</h1>
       <span class="date-display">{{ year }}年{{ month }}月</span>
@@ -58,7 +59,7 @@
 </template>
 
 <script setup lang="ts">
-import { minimiseWindow, maximiseWindow, closeWindow, getWindowPosition, setWindowPosition, getWindowSize, getScreenWorkArea } from '@/api'
+import { minimiseWindow, maximiseWindow, closeWindow } from '@/api'
 
 defineProps<{
   year: number
@@ -85,92 +86,6 @@ function onMaximise() {
 function onClose() {
   closeWindow()
 }
-
-// 窗口拖动
-let isDragging = false
-let startX = 0
-let startY = 0
-let startWinX = 0
-let startWinY = 0
-let windowWidth = 0
-let windowHeight = 0
-let screenX = 0
-let screenY = 0
-let screenWidth = 0
-let screenHeight = 0
-let pendingX = 0
-let pendingY = 0
-let dragRaf = 0
-
-async function onDragStart(e: MouseEvent) {
-  // 只在左键且不在右侧按钮区时开始拖动
-  if (e.button !== 0) return
-  const target = e.target as HTMLElement
-  if (target.closest('.header-right')) return
-  
-  isDragging = true
-  startX = e.screenX
-  startY = e.screenY
-  
-  // 并行获取窗口尺寸、屏幕工作区和当前位置
-  const [winSize, screenArea, pos] = await Promise.all([
-    getWindowSize(),
-    getScreenWorkArea(),
-    getWindowPosition()
-  ])
-  
-  windowWidth = winSize.width
-  windowHeight = winSize.height
-  screenX = screenArea.x
-  screenY = screenArea.y
-  screenWidth = screenArea.width
-  screenHeight = screenArea.height
-  startWinX = pos.x
-  startWinY = pos.y
-  
-  document.addEventListener('mousemove', onDragMove)
-  document.addEventListener('mouseup', onDragEnd)
-}
-
-function onDragMove(e: MouseEvent) {
-  if (!isDragging) return
-  const dx = e.screenX - startX
-  const dy = e.screenY - startY
-  
-  // 计算新位置
-  let newX = startWinX + dx
-  let newY = startWinY + dy
-  
-  // 边界约束：确保窗口不会拖出屏幕
-  const minX = screenX
-  const maxX = screenX + screenWidth - windowWidth
-  const minY = screenY
-  const maxY = screenY + screenHeight - windowHeight
-  
-  // 限制窗口位置在屏幕范围内
-  newX = Math.max(minX, Math.min(maxX, newX))
-  newY = Math.max(minY, Math.min(maxY, newY))
-  
-  // 使用 requestAnimationFrame 节流，避免快速拖动时频繁调用
-  pendingX = newX
-  pendingY = newY
-  if (!dragRaf) {
-    dragRaf = requestAnimationFrame(() => {
-      dragRaf = 0
-      setWindowPosition(pendingX, pendingY)
-    })
-  }
-}
-
-function onDragEnd() {
-  isDragging = false
-  if (dragRaf) {
-    cancelAnimationFrame(dragRaf)
-    dragRaf = 0
-  }
-  document.removeEventListener('mousemove', onDragMove)
-  document.removeEventListener('mouseup', onDragEnd)
-}
 </script>
 
 <style scoped>
@@ -179,6 +94,16 @@ function onDragEnd() {
   align-items: center;
   justify-content: space-between;
   padding: 8px 4px;
+  flex-shrink: 0;
+  /* Wails 原生窗口拖动；自定义属性会继承，按钮区需显式关闭 */
+  --wails-draggable: drag;
+}
+
+.header-right {
+  --wails-draggable: no-drag;
+  display: flex;
+  align-items: center;
+  gap: 12px;
   flex-shrink: 0;
 }
 
@@ -204,13 +129,6 @@ function onDragEnd() {
   font-size: 15px;
   color: var(--text-secondary);
   font-weight: 400;
-}
-
-.header-right {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex-shrink: 0;
 }
 
 .btn {

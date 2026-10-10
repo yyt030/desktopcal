@@ -285,8 +285,8 @@ async function onSaveSettings(s: Settings) {
 }
 
 onMounted(async () => {
-  await loadMonth()
-  const s = await getSettings()
+  // 日历与设置互不依赖，并行拉取缩短首屏时间
+  const [, s] = await Promise.all([loadMonth(), getSettings()])
   currentSettings.value = s
   applyAppearance(s)
   setWindowSize(s.width, s.height)

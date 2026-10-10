@@ -108,22 +108,3 @@ export async function getVersion(): Promise<string> {
 export async function getDatabasePath(): Promise<string> {
   return App.GetDatabasePath()
 }
-
-export async function getWindowPosition(): Promise<{ x: number; y: number }> {
-  const [x, y] = await App.GetWindowPosition()
-  return { x, y }
-}
-
-export async function setWindowPosition(x: number, y: number): Promise<void> {
-  return App.SetWindowPosition(x, y)
-}
-
-export async function getWindowSize(): Promise<{ width: number; height: number }> {
-  const [width, height] = await App.GetWindowSize()
-  return { width, height }
-}
-
-export async function getScreenWorkArea(): Promise<{ x: number; y: number; width: number; height: number }> {
-  const [x, y, width, height] = await App.GetScreenWorkArea()
-  return { x, y, width, height }
-}

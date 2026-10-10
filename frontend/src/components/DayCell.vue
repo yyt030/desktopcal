@@ -134,7 +134,8 @@ defineExpose({ measure })
   align-items: center;
   padding: 4px 3px;
   cursor: pointer;
-  transition: all 0.15s;
+  /* 只过渡实际会变的绘制属性，避免 all 触发不必要的过渡计算 */
+  transition: background-color 0.15s, box-shadow 0.15s, border-color 0.15s, opacity 0.15s;
   position: relative;
   overflow: hidden;
   gap: 1px;

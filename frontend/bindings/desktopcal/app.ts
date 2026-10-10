@@ -79,10 +79,6 @@ export function GetMonthDays(year: number, month: number): $CancellablePromise<(
     });
 }
 
-export function GetScreenWorkArea(): $CancellablePromise<[number, number, number, number]> {
-    return $Call.ByID(810732443);
-}
-
 export function GetSettings(): $CancellablePromise<model$0.Settings | null> {
     return $Call.ByID(2554697378).then(($result: any) => {
         return $$createType7($result);
@@ -101,14 +97,6 @@ export function GetTodaySolarTerm(): $CancellablePromise<string> {
 
 export function GetVersion(): $CancellablePromise<string> {
     return $Call.ByID(1049863377);
-}
-
-export function GetWindowPosition(): $CancellablePromise<[number, number]> {
-    return $Call.ByID(1683686380);
-}
-
-export function GetWindowSize(): $CancellablePromise<[number, number]> {
-    return $Call.ByID(2496989030);
 }
 
 export function HideWindow(): $CancellablePromise<void> {
@@ -150,6 +138,10 @@ export function SaveSettings(s: model$0.Settings | null): $CancellablePromise<vo
     return $Call.ByID(1949631069, s);
 }
 
+export function SaveWindowSize(width: number, height: number): $CancellablePromise<void> {
+    return $Call.ByID(4029391749, width, height);
+}
+
 export function SetDayBackground(date: string, color: string): $CancellablePromise<void> {
     return $Call.ByID(1454287147, date, color);
 }
@@ -163,10 +155,6 @@ export function SetHotkey(hotkey: string): $CancellablePromise<void> {
 
 export function SetWindowAlwaysOnTop(onTop: boolean): $CancellablePromise<void> {
     return $Call.ByID(524274450, onTop);
-}
-
-export function SetWindowPosition(x: number, y: number): $CancellablePromise<void> {
-    return $Call.ByID(1776544976, x, y);
 }
 
 export function SetWindowSize(width: number, height: number): $CancellablePromise<void> {
