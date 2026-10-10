@@ -47,7 +47,18 @@ func main() {
 			Handler: application.AssetFileServerFS(assets),
 		},
 		Windows: application.WindowsOptions{
-			AdditionalBrowserArgs: []string{"--disable-gpu"},
+			// --disable-gpu：WebView 渲染走软件光栅，避免 GPU 进程高占用（风扇狂转）
+			// --disable-breakpad：不启动 crashpad 崩溃上报进程（桌面应用用不上）
+			// --disable-hang-monitor：关闭渲染器挂起看门狗的周期轮询
+			// --disable-domain-reliability：关闭后台网络监控上报
+			AdditionalBrowserArgs: []string{
+				"--disable-gpu",
+				"--disable-breakpad",
+				"--disable-hang-monitor",
+				"--disable-domain-reliability",
+			},
+			// 关闭用不到的 Edge 功能（弹窗助手、PDF UI）
+			DisabledFeatures: []string{"msWebOOUI", "msPdfOOUI"},
 		},
 		Mac: application.MacOptions{
 			ApplicationShouldTerminateAfterLastWindowClosed: false,
@@ -65,6 +76,12 @@ func main() {
 		BackgroundColour: application.RGBA{Red: 30, Green: 30, Blue: 46, Alpha: 255},
 		KeyBindings: map[string]func(application.Window){
 			"cmd+w": func(w application.Window) { w.Hide() },
+		},
+		Windows: application.WindowsWindow{
+			// WebView2 原生非客户区支持：app-region: drag 区域由浏览器进程
+			// 直接当标题栏处理，拖动零延迟，与系统窗口手感一致。
+			// 旧版 WebView2 运行时不支持时自动回退到 JS 拖动。
+			NonClientRegionSupport: true,
 		},
 	})
 	service.setRuntimeRefs(app, win)

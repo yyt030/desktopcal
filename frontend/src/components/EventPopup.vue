@@ -373,11 +373,29 @@ function readLinesFromDOM(): string[] {
   return result
 }
 
+/**
+ * 自动删除空行（非末行、非光标所在行）。空行保存时本就进不了任务列表，
+ * 编辑期就地清掉保证所见即所得。只移除光标所在行之外的节点，
+ * 光标所在的文本节点不受影响，无需恢复选区。
+ */
+function removeEmptyLines(editor: HTMLElement) {
+  const lineEls = Array.from(editor.querySelectorAll('.editor-line'))
+  if (lineEls.length === 0) return
+  const caretIdx = getCaretLineIndex(editor)
+  for (let i = 0; i < lineEls.length - 1; i++) {
+    if (i === caretIdx) continue
+    const el = lineEls[i]
+    const content = (el.textContent || '').replace(/\u00A0/g, '')
+    if (content === '') el.remove()
+  }
+}
+
 function onEditorInput() {
   const editor = editorRef.value
   if (!editor) return
   // 规范化：确保每个直接子元素是 div.editor-line
   normalizeEditorDOM(editor)
+  removeEmptyLines(editor)
   const newLines = readLinesFromDOM()
   text.value = newLines.join('\n')
   // 同步行号高度

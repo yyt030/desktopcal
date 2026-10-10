@@ -95,12 +95,17 @@ function onClose() {
   justify-content: space-between;
   padding: 8px 4px;
   flex-shrink: 0;
-  /* Wails 原生窗口拖动；自定义属性会继承，按钮区需显式关闭 */
+  /* 拖动三保险：--wails-draggable 走 Wails 运行时（macOS），app-region 走
+     WebView2 原生非客户区（Windows），两者均会继承，按钮区需显式关闭 */
   --wails-draggable: drag;
+  app-region: drag;
+  -webkit-app-region: drag;
 }
 
 .header-right {
   --wails-draggable: no-drag;
+  app-region: no-drag;
+  -webkit-app-region: no-drag;
   display: flex;
   align-items: center;
   gap: 12px;
