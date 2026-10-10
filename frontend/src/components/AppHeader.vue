@@ -98,6 +98,9 @@ let screenX = 0
 let screenY = 0
 let screenWidth = 0
 let screenHeight = 0
+let pendingX = 0
+let pendingY = 0
+let dragRaf = 0
 
 async function onDragStart(e: MouseEvent) {
   // 只在左键且不在右侧按钮区时开始拖动
@@ -148,11 +151,23 @@ function onDragMove(e: MouseEvent) {
   newX = Math.max(minX, Math.min(maxX, newX))
   newY = Math.max(minY, Math.min(maxY, newY))
   
-  setWindowPosition(newX, newY)
+  // 使用 requestAnimationFrame 节流，避免快速拖动时频繁调用
+  pendingX = newX
+  pendingY = newY
+  if (!dragRaf) {
+    dragRaf = requestAnimationFrame(() => {
+      dragRaf = 0
+      setWindowPosition(pendingX, pendingY)
+    })
+  }
 }
 
 function onDragEnd() {
   isDragging = false
+  if (dragRaf) {
+    cancelAnimationFrame(dragRaf)
+    dragRaf = 0
+  }
   document.removeEventListener('mousemove', onDragMove)
   document.removeEventListener('mouseup', onDragEnd)
 }

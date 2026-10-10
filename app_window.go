@@ -101,8 +101,8 @@ func (a *App) GetScreenWorkArea() (x, y, width, height int) {
 // SaveWindowSize 保存窗口尺寸到设置，供下次启动使用。
 // 使用防抖避免拖拽调整时频繁写数据库：500ms 内多次调用只执行最后一次。
 var (
-	saveSizeTimer   *time.Timer
-	saveSizeMutex   sync.Mutex
+	saveSizeTimer *time.Timer
+	saveSizeMutex sync.Mutex
 )
 
 func (a *App) SaveWindowSize(width, height int) {
