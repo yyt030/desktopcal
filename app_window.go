@@ -1,6 +1,10 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"sync"
+	"time"
+)
 
 // Window controls exposed to the frontend as bound service methods.
 
@@ -95,15 +99,30 @@ func (a *App) GetScreenWorkArea() (x, y, width, height int) {
 }
 
 // SaveWindowSize 保存窗口尺寸到设置，供下次启动使用。
+// 使用防抖避免拖拽调整时频繁写数据库：500ms 内多次调用只执行最后一次。
+var (
+	saveSizeTimer   *time.Timer
+	saveSizeMutex   sync.Mutex
+)
+
 func (a *App) SaveWindowSize(width, height int) {
-	if a.db == nil {
-		return
+	saveSizeMutex.Lock()
+	defer saveSizeMutex.Unlock()
+
+	if saveSizeTimer != nil {
+		saveSizeTimer.Stop()
 	}
-	settings := map[string]string{
-		"width":  intToStr(width),
-		"height": intToStr(height),
-	}
-	a.db.SetSettings(settings)
+
+	saveSizeTimer = time.AfterFunc(500*time.Millisecond, func() {
+		if a.db == nil {
+			return
+		}
+		settings := map[string]string{
+			"width":  intToStr(width),
+			"height": intToStr(height),
+		}
+		a.db.SetSettings(settings)
+	})
 }
 
 func intToStr(n int) string {

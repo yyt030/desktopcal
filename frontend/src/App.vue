@@ -75,6 +75,7 @@ const showPopup = ref(false)
 const showSettings = ref(false)
 const toast = ref('')
 let toastTimer: number | undefined
+let editorResizeTimer: number | undefined
 
 // 已渲染数据对应的「今天」。跨日检测据此判断，避免每分钟都重新拉数据。
 let anchorToday = formatDate(new Date())
@@ -220,14 +221,18 @@ async function onSetBg(color: string) {
   }
 }
 
-async function onEditorResize(width: number, height: number) {
+// 编辑器缩放防抖：500ms 内多次触发只保存最后一次，避免拖拽时频繁写数据库
+function onEditorResize(width: number, height: number) {
   currentSettings.value.editorWidth = width
   currentSettings.value.editorHeight = height
-  try {
-    await saveEditorSize(width, height)
-  } catch (err) {
-    console.error('保存编辑器大小失败:', err)
-  }
+  if (editorResizeTimer) window.clearTimeout(editorResizeTimer)
+  editorResizeTimer = window.setTimeout(async () => {
+    try {
+      await saveEditorSize(width, height)
+    } catch (err) {
+      console.error('保存编辑器大小失败:', err)
+    }
+  }, 500)
 }
 
 async function onExport() {
