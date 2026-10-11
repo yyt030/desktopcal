@@ -135,20 +135,6 @@ func (a *App) ExportDataRangeToFile(startYear, startMonth, endYear, endMonth int
 	return nil
 }
 
-func (a *App) ImportData(jsonStr string) error {
-	var data exportData
-	if err := json.Unmarshal([]byte(jsonStr), &data); err != nil {
-		return fmt.Errorf("解析导入数据失败: %w", err)
-	}
-	if err := a.db.ImportEvents(data.Events); err != nil {
-		return fmt.Errorf("导入事件失败: %w", err)
-	}
-	if err := a.db.ImportBackgrounds(data.Backgrounds); err != nil {
-		return fmt.Errorf("导入背景失败: %w", err)
-	}
-	return nil
-}
-
 func (a *App) PickDirectory() (string, error) {
 	if a.app == nil || a.app.Dialog == nil {
 		return "", fmt.Errorf("对话框不可用")

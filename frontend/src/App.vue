@@ -247,7 +247,7 @@ async function onExport() {
 async function onImport() {
   const input = document.createElement('input')
   input.type = 'file'
-  input.accept = '.json'
+  input.accept = '.json,.txt'
   input.onchange = async () => {
     const file = input.files?.[0]
     if (!file) return
