@@ -92,11 +92,13 @@ func main() {
 	}
 
 	// 关闭按钮根据设置决定是隐藏到托盘还是退出应用。
+	// 每次关闭时从数据库读取最新设置，确保用户修改后实时生效。
 	win.RegisterHook(events.Common.WindowClosing, func(e *application.WindowEvent) {
 		if quitting.Load() {
 			return
 		}
-		if settings.CloseToTray {
+		currentSettings := service.GetSettings()
+		if currentSettings.CloseToTray {
 			e.Cancel()
 			win.Hide()
 			setDockIconVisible(false)
