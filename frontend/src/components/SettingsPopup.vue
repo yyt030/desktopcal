@@ -178,7 +178,7 @@
                     <span class="setting-hint">{{ localSettings.closeToTray ? '关闭窗口后保留 in 系统托盘' : '关闭窗口后退出程序' }}</span>
                   </div>
                 </div>
-                <div v-if="platform === 'windows'" class="setting-group">
+                <div class="setting-group">
                   <label class="setting-label">开机自启动</label>
                   <div class="setting-control">
                     <button
