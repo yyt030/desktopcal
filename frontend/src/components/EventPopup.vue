@@ -866,10 +866,15 @@ watch(text, () => {
   position: absolute;
   right: 3px;
   bottom: 3px;
-  width: 8px;
-  height: 8px;
-  border-right: 2px solid var(--text-muted);
-  border-bottom: 2px solid var(--text-muted);
+  width: 10px;
+  height: 10px;
+  background: repeating-linear-gradient(
+    135deg,
+    var(--text-muted) 0px,
+    var(--text-muted) 1px,
+    transparent 1px,
+    transparent 3px
+  );
   opacity: 0.5;
 }
 
