@@ -5,7 +5,8 @@ import "testing"
 const sampleText = `[2026-10-01]
 --------------------------------------------------------------------------------
 1. 任务-处理事务1
-2. 任务-处理事务2
+2. 任务-处理事务2(已完成)
+3. 任务-处理事务3（已完成）
 
 
 [2026-09-30]
@@ -23,10 +24,18 @@ func TestParseTextEvents(t *testing.T) {
 	if len(events) != 2 {
 		t.Fatalf("期望 2 个日期，得到 %d", len(events))
 	}
-	if got := events["2026-10-01"]; len(got) != 2 {
-		t.Fatalf("期望 2026-10-01 有 2 条任务，得到 %d", len(got))
-	} else if got[0].Title != "任务-处理事务1" || got[0].Completed {
-		t.Fatalf("第一条任务解析错误：%+v", got[0])
+	if got := events["2026-10-01"]; len(got) != 3 {
+		t.Fatalf("期望 2026-10-01 有 3 条任务，得到 %d", len(got))
+	} else {
+		if got[0].Title != "任务-处理事务1" || got[0].Completed {
+			t.Fatalf("第一条任务解析错误：%+v", got[0])
+		}
+		if got[1].Title != "任务-处理事务2" || !got[1].Completed {
+			t.Fatalf("第二条任务(英文括号已完成)解析错误：%+v", got[1])
+		}
+		if got[2].Title != "任务-处理事务3" || !got[2].Completed {
+			t.Fatalf("第三条任务(中文括号已完成)解析错误：%+v", got[2])
+		}
 	}
 	if got := events["2026-09-30"]; len(got) != 3 {
 		t.Fatalf("期望 2026-09-30 有 3 条任务，得到 %d", len(got))

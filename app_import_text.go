@@ -52,6 +52,12 @@ func parseTextEvents(text string) (map[string][]*model.Event, error) {
 				body = strings.TrimSpace(strings.TrimPrefix(body, mark))
 			}
 		}
+		for _, suffix := range []string{"(已完成)", "（已完成）"} {
+			if strings.HasSuffix(body, suffix) {
+				completed = true
+				body = strings.TrimSpace(strings.TrimSuffix(body, suffix))
+			}
+		}
 		if body == "" {
 			continue
 		}
