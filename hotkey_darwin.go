@@ -8,6 +8,9 @@ package main
 #include <Carbon/Carbon.h>
 
 static EventHotKeyRef hotKeyRef = NULL;
+// 事件处理器只安装一次：它不持有快捷键配置，重复安装会随快捷键重注册而累积，
+// 导致一次按键触发多次显隐切换、相互抵消。
+static int handlerInstalled = 0;
 
 extern void hotkeyTriggered();
 
@@ -26,17 +29,20 @@ static void registerHotKeyNative(unsigned int keyCode, unsigned int modifiers) {
 	hotKeyID.signature = 'dstc';
 	hotKeyID.id = 1;
 	
-	EventTypeSpec eventType;
-	eventType.eventClass = kEventClassKeyboard;
-	eventType.eventKind = kEventHotKeyPressed;
-	
-	InstallApplicationEventHandler(
-		NewEventHandlerUPP(hotkeyHandler),
-		1,
-		&eventType,
-		NULL,
-		NULL
-	);
+	if (!handlerInstalled) {
+		EventTypeSpec eventType;
+		eventType.eventClass = kEventClassKeyboard;
+		eventType.eventKind = kEventHotKeyPressed;
+
+		InstallApplicationEventHandler(
+			NewEventHandlerUPP(hotkeyHandler),
+			1,
+			&eventType,
+			NULL,
+			NULL
+		);
+		handlerInstalled = 1;
+	}
 	
 	RegisterEventHotKey(
 		keyCode,
