@@ -57,6 +57,7 @@ type Settings struct {
 	LayoutMode     string `json:"layoutMode"`
 	Hotkey         string `json:"hotkey"`
 	CloseToTray    bool   `json:"closeToTray"`
+	AutoStart      bool   `json:"autoStart"`
 	ExportPath     string `json:"exportPath"`
 	EditorWidth    int    `json:"editorWidth"`
 	EditorHeight   int    `json:"editorHeight"`

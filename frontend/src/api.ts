@@ -108,3 +108,7 @@ export async function getVersion(): Promise<string> {
 export async function getDatabasePath(): Promise<string> {
   return App.GetDatabasePath()
 }
+
+export async function getPlatform(): Promise<string> {
+  return App.GetPlatform()
+}

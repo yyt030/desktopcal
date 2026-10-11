@@ -48,3 +48,7 @@ func setDockIconVisible(visible bool) {
 func shouldStartHidden() bool {
 	return false
 }
+
+func setAutoStart(enabled bool) error {
+	return nil
+}

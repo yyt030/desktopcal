@@ -93,6 +93,7 @@ var settingsSpec = []settingCodec{
 	boolSetting("show_lunar", func(s *model.Settings) *bool { return &s.ShowLunar }),
 	boolSetting("show_solar_term", func(s *model.Settings) *bool { return &s.ShowSolarTerm }),
 	boolSetting("close_to_tray", func(s *model.Settings) *bool { return &s.CloseToTray }),
+	boolSetting("auto_start", func(s *model.Settings) *bool { return &s.AutoStart }),
 	intSetting("editor_width", func(s *model.Settings) *int { return &s.EditorWidth }),
 	intSetting("editor_height", func(s *model.Settings) *int { return &s.EditorHeight }),
 }
@@ -128,6 +129,9 @@ func (a *App) SaveSettings(s *model.Settings) error {
 		if hk := ParseHotkey(s.Hotkey); hk != nil {
 			registerGlobalHotkey(hk)
 		}
+	}
+	if old.AutoStart != s.AutoStart {
+		setAutoStart(s.AutoStart)
 	}
 	return nil
 }

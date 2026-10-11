@@ -181,6 +181,7 @@ export class Settings {
     "layoutMode": string;
     "hotkey": string;
     "closeToTray": boolean;
+    "autoStart": boolean;
     "exportPath": string;
     "editorWidth": number;
     "editorHeight": number;
@@ -222,6 +223,9 @@ export class Settings {
         }
         if (!("closeToTray" in $$source)) {
             this["closeToTray"] = false;
+        }
+        if (!("autoStart" in $$source)) {
+            this["autoStart"] = false;
         }
         if (!("exportPath" in $$source)) {
             this["exportPath"] = "";

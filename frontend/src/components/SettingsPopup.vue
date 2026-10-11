@@ -178,6 +178,17 @@
                     <span class="setting-hint">{{ localSettings.closeToTray ? '关闭窗口后保留 in 系统托盘' : '关闭窗口后退出程序' }}</span>
                   </div>
                 </div>
+                <div v-if="platform === 'windows'" class="setting-group">
+                  <label class="setting-label">开机自启动</label>
+                  <div class="setting-control">
+                    <button
+                      class="toggle-btn"
+                      :class="{ active: localSettings.autoStart }"
+                      @click="localSettings.autoStart = !localSettings.autoStart"
+                    >{{ localSettings.autoStart ? '开启' : '关闭' }}</button>
+                    <span class="setting-hint">{{ localSettings.autoStart ? '系统启动时自动运行' : '不自动启动' }}</span>
+                  </div>
+                </div>
               </template>
 
               <template v-else-if="activeTab === 'data'">
@@ -279,7 +290,7 @@
 <script setup lang="ts">
 import { computed, nextTick, ref, watch } from 'vue'
 import { THEMES } from '../theme'
-import { getVersion, pickDirectory, exportData, exportDataRange, getDatabasePath } from '../api'
+import { getVersion, pickDirectory, exportData, exportDataRange, getDatabasePath, getPlatform } from '../api'
 import type { Settings } from '../types'
 
 const props = defineProps<{
@@ -315,6 +326,7 @@ const overlayRef = ref<HTMLElement>()
 const localSettings = ref<Settings>({ ...props.settings })
 const versionInfo = ref('')
 const dbPath = ref('')
+const platform = ref('')
 const isCapturing = ref(false)
 const exportRange = ref<'month' | 'half'>('month')
 const exportMessage = ref<{ type: 'success' | 'error'; text: string } | null>(null)
@@ -336,6 +348,7 @@ const exportHint = computed(() => {
 
 getVersion().then(v => { versionInfo.value = v })
 getDatabasePath().then(p => { dbPath.value = p })
+getPlatform().then(p => { platform.value = p })
 
 function formatHotkey(hotkey: string): string {
   if (!hotkey) return ''

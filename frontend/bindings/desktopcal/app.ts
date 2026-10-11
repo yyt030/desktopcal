@@ -79,6 +79,13 @@ export function GetMonthDays(year: number, month: number): $CancellablePromise<(
     });
 }
 
+/**
+ * GetPlatform 返回当前运行平台（darwin/windows/linux），供前端判断功能可用性。
+ */
+export function GetPlatform(): $CancellablePromise<string> {
+    return $Call.ByID(3709063056);
+}
+
 export function GetSettings(): $CancellablePromise<model$0.Settings | null> {
     return $Call.ByID(2554697378).then(($result: any) => {
         return $$createType7($result);
@@ -103,8 +110,11 @@ export function HideWindow(): $CancellablePromise<void> {
     return $Call.ByID(542966029);
 }
 
-export function ImportData(jsonStr: string): $CancellablePromise<void> {
-    return $Call.ByID(413583092, jsonStr);
+/**
+ * ImportData 自动识别导入格式：JSON 备份整体覆盖，桌面日历官方文本按日期覆盖。
+ */
+export function ImportData(content: string): $CancellablePromise<void> {
+    return $Call.ByID(413583092, content);
 }
 
 export function MaximiseWindow(): $CancellablePromise<void> {

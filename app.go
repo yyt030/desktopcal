@@ -3,6 +3,7 @@ package main
 import (
 	"desktopcal/internal/db"
 	"desktopcal/internal/lunar"
+	"runtime"
 
 	"github.com/wailsapp/wails/v3/pkg/application"
 )
@@ -33,4 +34,9 @@ func NewApp(database *db.DB) *App {
 func (a *App) setRuntimeRefs(app *application.App, win application.Window) {
 	a.app = app
 	a.mainWin = win
+}
+
+// GetPlatform 返回当前运行平台（darwin/windows/linux），供前端判断功能可用性。
+func (a *App) GetPlatform() string {
+	return runtime.GOOS
 }

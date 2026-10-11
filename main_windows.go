@@ -4,10 +4,12 @@ package main
 
 import (
 	_ "embed"
+	"os"
 	"unsafe"
 
 	"github.com/wailsapp/wails/v3/pkg/application"
 	"golang.org/x/sys/windows"
+	"golang.org/x/sys/windows/registry"
 )
 
 //go:embed build/windows/trayicon.png
@@ -98,4 +100,28 @@ func setDockIconVisible(visible bool) {
 	}
 	
 	setWindowLongProc.Call(uintptr(targetHwnd), gwlExStyle, style)
+}
+
+// setAutoStart 通过注册表设置开机自启动。
+// enabled=true 时写入 Run 键，false 时删除。
+func setAutoStart(enabled bool) error {
+	const keyPath = `Software\Microsoft\Windows\CurrentVersion\Run`
+	const valueName = "DesktopCal"
+
+	k, err := registry.OpenKey(registry.CURRENT_USER, keyPath, registry.SET_VALUE|registry.QUERY_VALUE)
+	if err != nil {
+		return err
+	}
+	defer k.Close()
+
+	if !enabled {
+		k.DeleteValue(valueName)
+		return nil
+	}
+
+	exe, err := os.Executable()
+	if err != nil {
+		return err
+	}
+	return k.SetStringValue(valueName, exe)
 }
