@@ -13,10 +13,13 @@ import (
 var (
 	textDateHeader = regexp.MustCompile(`^\[(\d{4}-\d{2}-\d{2})\]$`)
 	textTaskPrefix = regexp.MustCompile(`^\d+\.\s*`)
+	// 支持的行分隔符：CRCRLF（老版桌面日历）→ CRLF → CR → LF。
+	// 顺序敏感：长序列必须放在前面，否则 `\r\n` 会先吃掉 CRCRLF 的后半。
+	textLineEnd = regexp.MustCompile(`\r\r\n|\r\n|\r|\n`)
 )
 
 // parseTextEvents 解析桌面日历官方软件导出的文本格式：
-// [YYYY-MM-DD] 日期头 + 虚线分隔 + “1. 任务” 编号行，按日期分组返回。
+// [YYYY-MM-DD] 日期头 + 虚线分隔 + "1. 任务" 编号行，按日期分组返回。
 // 行首的 ✓/√ 前缀视为已完成；无编号的续行并入上一条任务。
 func parseTextEvents(text string) (map[string][]*model.Event, error) {
 	events := map[string][]*model.Event{}
@@ -26,11 +29,7 @@ func parseTextEvents(text string) (map[string][]*model.Event, error) {
 	// 会让首行日期头正则失败。这里显式剥掉。
 	text = strings.TrimPrefix(text, "\ufeff")
 
-	// 行分隔：桌面日历老版本用 CRCRLF（\r\r\n）；先折叠成 LF 再拆分。
-	text = strings.ReplaceAll(text, "\r\n", "\n")
-	text = strings.ReplaceAll(text, "\r", "\n")
-
-	for _, raw := range strings.Split(text, "\n") {
+	for _, raw := range textLineEnd.Split(text, -1) {
 		line := strings.TrimSpace(raw)
 		if line == "" || strings.Trim(line, "-") == "" {
 			continue
