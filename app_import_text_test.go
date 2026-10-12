@@ -57,3 +57,22 @@ func TestParseTextEventsInvalid(t *testing.T) {
 		t.Fatal("期望非法日期报错")
 	}
 }
+
+func TestParseTextEventsBOMAndCRCRLF(t *testing.T) {
+	// 桌面日历老版本文件：UTF-8 BOM 头 + CRCRLF（\\r\\r\\n）行分隔
+	text := "\ufeff[2026-10-12]\r\r\n------------------\r\r\n1. 任务A\r\r\n2. 任务B(已完成)\r\r\n"
+	events, err := parseTextEvents(text)
+	if err != nil {
+		t.Fatal(err)
+	}
+	got := events["2026-10-12"]
+	if len(got) != 2 {
+		t.Fatalf("期望 2 条任务，得到 %d", len(got))
+	}
+	if got[0].Title != "任务A" || got[0].Completed {
+		t.Fatalf("第一条解析错误：%+v", got[0])
+	}
+	if got[1].Title != "任务B" || !got[1].Completed {
+		t.Fatalf("第二条解析错误：%+v", got[1])
+	}
+}

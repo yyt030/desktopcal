@@ -22,7 +22,15 @@ func parseTextEvents(text string) (map[string][]*model.Event, error) {
 	events := map[string][]*model.Event{}
 	currentDate := ""
 
-	for _, raw := range strings.Split(strings.ReplaceAll(text, "\r\n", "\n"), "\n") {
+	// 老版桌面日历文件以 UTF-8 BOM 开头，Go 的 TrimSpace 不会去除 U+FEFF，
+	// 会让首行日期头正则失败。这里显式剥掉。
+	text = strings.TrimPrefix(text, "\ufeff")
+
+	// 行分隔：桌面日历老版本用 CRCRLF（\r\r\n）；先折叠成 LF 再拆分。
+	text = strings.ReplaceAll(text, "\r\n", "\n")
+	text = strings.ReplaceAll(text, "\r", "\n")
+
+	for _, raw := range strings.Split(text, "\n") {
 		line := strings.TrimSpace(raw)
 		if line == "" || strings.Trim(line, "-") == "" {
 			continue
