@@ -82,7 +82,9 @@ func parseTextEvents(text string) (map[string][]*model.Event, error) {
 	return events, nil
 }
 
-// importTextData 合并导入：按 (date, title) 去重，已存在的任务跳过，仅插入新任务。
+// importTextData 合并导入：按 (date, title) 去重，已存在的任务保留，
+// 但会把导入文本里的「已完成」状态 OR 合并到已有任务上（避免用户
+// 手动录入的未完成任务丢失文件里已勾选的完成标记）；仅插入新任务。
 func (a *App) importTextData(text string) error {
 	events, err := parseTextEvents(text)
 	if err != nil {
@@ -93,17 +95,23 @@ func (a *App) importTextData(text string) error {
 		if err != nil {
 			return fmt.Errorf("查询 %s 的已有事件失败: %w", date, err)
 		}
-		existingTitles := make(map[string]bool, len(existing))
+		existingByTitle := make(map[string]*model.Event, len(existing))
 		for _, e := range existing {
-			existingTitles[e.Title] = true
+			existingByTitle[e.Title] = e
 		}
 		var toInsert []*model.Event
+		dirty := false
 		for _, e := range dayEvents {
-			if !existingTitles[e.Title] {
-				toInsert = append(toInsert, e)
+			if old, ok := existingByTitle[e.Title]; ok {
+				if !old.Completed && e.Completed {
+					old.Completed = true
+					dirty = true
+				}
+				continue
 			}
+			toInsert = append(toInsert, e)
 		}
-		if len(toInsert) == 0 {
+		if len(toInsert) == 0 && !dirty {
 			continue
 		}
 		if err := a.db.BatchSaveEvents(date, append(existing, toInsert...)); err != nil {
