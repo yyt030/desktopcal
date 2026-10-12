@@ -167,28 +167,6 @@
                     >{{ localSettings.alwaysTop ? '开启' : '关闭' }}</button>
                   </div>
                 </div>
-                <div class="setting-group">
-                  <label class="setting-label">关闭时最小化到托盘</label>
-                  <div class="setting-control">
-                    <button
-                      class="toggle-btn"
-                      :class="{ active: localSettings.closeToTray }"
-                      @click="localSettings.closeToTray = !localSettings.closeToTray"
-                    >{{ localSettings.closeToTray ? '开启' : '关闭' }}</button>
-                    <span class="setting-hint">{{ localSettings.closeToTray ? '关闭窗口后保留 in 系统托盘' : '关闭窗口后退出程序' }}</span>
-                  </div>
-                </div>
-                <div class="setting-group">
-                  <label class="setting-label">开机自启动</label>
-                  <div class="setting-control">
-                    <button
-                      class="toggle-btn"
-                      :class="{ active: localSettings.autoStart }"
-                      @click="localSettings.autoStart = !localSettings.autoStart"
-                    >{{ localSettings.autoStart ? '开启' : '关闭' }}</button>
-                    <span class="setting-hint">{{ localSettings.autoStart ? '系统启动时自动运行' : '不自动启动' }}</span>
-                  </div>
-                </div>
               </template>
 
               <template v-else-if="activeTab === 'data'">
@@ -237,9 +215,9 @@
                 </div>
               </template>
 
-              <template v-else-if="activeTab === 'hotkey'">
+              <template v-else-if="activeTab === 'system'">
                 <div class="setting-group">
-                  <label class="setting-label">显示/隐藏窗口</label>
+                  <label class="setting-label">显示/隐藏窗口快捷键</label>
                   <div class="setting-control">
                     <div class="hotkey-input-wrapper">
                       <input
@@ -260,6 +238,28 @@
                       </button>
                     </div>
                     <span class="mode-hint">{{ isCapturing ? '请按下新的快捷键...' : '点击输入框后按下快捷键' }}</span>
+                  </div>
+                </div>
+                <div class="setting-group">
+                  <label class="setting-label">关闭时最小化到托盘</label>
+                  <div class="setting-control">
+                    <button
+                      class="toggle-btn"
+                      :class="{ active: localSettings.closeToTray }"
+                      @click="localSettings.closeToTray = !localSettings.closeToTray"
+                    >{{ localSettings.closeToTray ? '开启' : '关闭' }}</button>
+                    <span class="setting-hint">{{ localSettings.closeToTray ? '关闭窗口后最小化到系统托盘' : '关闭窗口后退出程序' }}</span>
+                  </div>
+                </div>
+                <div class="setting-group">
+                  <label class="setting-label">开机自启动</label>
+                  <div class="setting-control">
+                    <button
+                      class="toggle-btn"
+                      :class="{ active: localSettings.autoStart }"
+                      @click="localSettings.autoStart = !localSettings.autoStart"
+                    >{{ localSettings.autoStart ? '开启' : '关闭' }}</button>
+                    <span class="setting-hint">{{ localSettings.autoStart ? '系统启动时自动运行' : '不自动启动' }}</span>
                   </div>
                 </div>
               </template>
@@ -309,7 +309,7 @@ const tabs = [
   { value: 'appearance', label: '外观' },
   { value: 'window', label: '窗口' },
   { value: 'data', label: '数据' },
-  { value: 'hotkey', label: '快捷键' },
+  { value: 'system', label: '系统' },
   { value: 'about', label: '关于' },
 ]
 
