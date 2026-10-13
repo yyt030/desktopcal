@@ -184,7 +184,7 @@ defineExpose({ measure })
 }
 
 .day-number {
-  font-size: var(--editor-font-size, 13px);
+  font-size: 1em;
   font-weight: 500;
   line-height: 1;
 }
@@ -212,7 +212,7 @@ defineExpose({ measure })
 }
 
 .lunar-row {
-  font-size: calc(var(--editor-font-size, 13px) * 0.7);
+  font-size: 0.7em;
   line-height: 1.1;
   text-align: center;
   white-space: nowrap;
@@ -243,7 +243,7 @@ defineExpose({ measure })
   position: absolute;
   right: 2px;
   bottom: 0;
-  font-size: calc(var(--editor-font-size, 13px) * 0.7);
+  font-size: 0.7em;
   line-height: 1.2;
   color: var(--text-secondary);
   background: var(--bg-primary);
@@ -252,7 +252,7 @@ defineExpose({ measure })
 }
 
 .event-text {
-  font-size: calc(var(--editor-font-size, 13px) * 0.7);
+  font-size: 0.7em;
   line-height: 1.2;
   white-space: nowrap;
   overflow: hidden;
