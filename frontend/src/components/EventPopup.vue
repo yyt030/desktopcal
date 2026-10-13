@@ -153,10 +153,9 @@ function renderEditorContent(el: HTMLElement, txt: string) {
     const isCompleted = line.startsWith('✓ ') || line.startsWith('✓')
     if (isCompleted) {
       div.classList.add('completed')
-      div.textContent = line
-    } else {
-      div.textContent = line
     }
+    // 使用文本节点而非 textContent，确保空行也有节点供 TreeWalker 遍历
+    div.appendChild(document.createTextNode(line))
     el.appendChild(div)
   }
 
@@ -427,6 +426,7 @@ function normalizeEditorDOM(editor: HTMLElement) {
         // <br> → 空行 div
         const div = document.createElement('div')
         div.className = 'editor-line'
+        div.appendChild(document.createTextNode(''))
         editor.replaceChild(div, el)
       } else if (!el.classList.contains('editor-line')) {
         el.classList.add('editor-line')
@@ -437,6 +437,7 @@ function normalizeEditorDOM(editor: HTMLElement) {
   if (editor.children.length === 0) {
     const div = document.createElement('div')
     div.className = 'editor-line'
+    div.appendChild(document.createTextNode(''))
     editor.appendChild(div)
   }
 }
