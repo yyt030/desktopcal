@@ -153,9 +153,9 @@ function renderEditorContent(el: HTMLElement, txt: string) {
     const isCompleted = line.startsWith('✓ ') || line.startsWith('✓')
     if (isCompleted) {
       div.classList.add('completed')
-      div.textContent = line || '\u00A0'
+      div.textContent = line
     } else {
-      div.textContent = line || '\u00A0'
+      div.textContent = line
     }
     el.appendChild(div)
   }
@@ -427,7 +427,6 @@ function normalizeEditorDOM(editor: HTMLElement) {
         // <br> → 空行 div
         const div = document.createElement('div')
         div.className = 'editor-line'
-        div.textContent = '\u00A0'
         editor.replaceChild(div, el)
       } else if (!el.classList.contains('editor-line')) {
         el.classList.add('editor-line')
@@ -438,7 +437,6 @@ function normalizeEditorDOM(editor: HTMLElement) {
   if (editor.children.length === 0) {
     const div = document.createElement('div')
     div.className = 'editor-line'
-    div.textContent = '\u00A0'
     editor.appendChild(div)
   }
 }
