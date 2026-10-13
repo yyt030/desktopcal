@@ -431,7 +431,6 @@ async function resetToDefault() {
     localSettings.value = { ...defaults }
     exportRange.value = 'month'
     emit('save', { ...defaults })
-    emit('close')
     emit('toast', '已重置为默认设置')
   } catch (err) {
     emit('toast', '重置失败：' + (err instanceof Error ? err.message : String(err)))
