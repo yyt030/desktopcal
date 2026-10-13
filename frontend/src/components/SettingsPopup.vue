@@ -429,6 +429,7 @@ async function resetToDefault() {
   try {
     const defaults = await resetSettings()
     localSettings.value = { ...defaults }
+    exportRange.value = 'month'
     emit('save', { ...defaults })
     emit('close')
     emit('toast', '已重置为默认设置')
