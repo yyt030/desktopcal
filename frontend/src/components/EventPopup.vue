@@ -418,7 +418,7 @@ function normalizeEditorDOM(editor: HTMLElement) {
       }
       const div = document.createElement('div')
       div.className = 'editor-line'
-      div.textContent = text
+      div.appendChild(document.createTextNode(text))
       editor.replaceChild(div, child)
     } else if (child.nodeType === Node.ELEMENT_NODE) {
       const el = child as HTMLElement
