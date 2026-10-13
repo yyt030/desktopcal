@@ -370,13 +370,8 @@ function readLinesFromDOM(): string[] {
   const result: string[] = []
   lineEls.forEach(el => {
     const content = (el.textContent || '').replace(/\u00A0/g, '')
-    // 如果该行有 completed 类，保留 ✓ 前缀
-    const wasCompleted = el.classList.contains('completed')
-    if (wasCompleted && content) {
-      result.push('✓ ' + content)
-    } else {
-      result.push(content)
-    }
+    // textContent 已包含 ✓ 前缀，无需重复添加
+    result.push(content)
   })
   return result
 }
