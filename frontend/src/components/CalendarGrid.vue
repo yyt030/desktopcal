@@ -102,7 +102,7 @@ watch(() => props.days, () => nextTick(measureAll))
 
 .weekday {
   text-align: center;
-  font-size: calc(var(--editor-font-size, 13px) * 0.85);
+  font-size: 0.85em;
   color: var(--text-secondary);
   font-weight: 500;
 }
