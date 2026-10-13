@@ -175,7 +175,9 @@ export class Settings {
     "theme": string;
     "alwaysTop": boolean;
     "fontSize": number;
+    "fontFamily": string;
     "calendarFontSize": number;
+    "calendarFontFamily": string;
     "firstDayOfWeek": number;
     "showLunar": boolean;
     "showSolarTerm": boolean;
@@ -207,8 +209,14 @@ export class Settings {
         if (!("fontSize" in $$source)) {
             this["fontSize"] = 0;
         }
+        if (!("fontFamily" in $$source)) {
+            this["fontFamily"] = "";
+        }
         if (!("calendarFontSize" in $$source)) {
             this["calendarFontSize"] = 0;
+        }
+        if (!("calendarFontFamily" in $$source)) {
+            this["calendarFontFamily"] = "";
         }
         if (!("firstDayOfWeek" in $$source)) {
             this["firstDayOfWeek"] = 0;

@@ -31,7 +31,7 @@
           </div>
 
           <div class="popup-body">
-            <div v-if="lineCount > 1" class="line-numbers" ref="lineNumbersRef">
+            <div v-if="lineCount > 1" class="line-numbers" ref="lineNumbersRef" :style="editorFontStyle">
               <div v-for="n in lineCount" :key="n" class="line-num" :ref="el => { if (el) lineNumRefs[n - 1] = el as HTMLElement }">{{ n }}.</div>
             </div>
             <div
@@ -39,6 +39,7 @@
               class="events-editor"
               contenteditable="true"
               spellcheck="false"
+              :style="editorFontStyle"
               @scroll="syncScroll"
               @keydown="handleEditorKeydown"
               @contextmenu="handleContextMenu"
@@ -95,6 +96,8 @@ const props = defineProps<{
   bgColor: string
   editorWidth: number
   editorHeight: number
+  fontSize: number
+  fontFamily: string
 }>()
 
 const emit = defineEmits<{
@@ -260,6 +263,11 @@ const lines = computed(() => {
 })
 
 const lineCount = computed(() => lines.value.length)
+
+const editorFontStyle = computed(() => ({
+  '--editor-font-size': props.fontSize + 'px',
+  'font-family': props.fontFamily || 'inherit',
+}))
 
 function eventsToText(events: Event[]): string {
   if (events.length === 0) return ''

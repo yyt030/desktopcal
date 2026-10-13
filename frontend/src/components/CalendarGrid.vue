@@ -1,5 +1,5 @@
 <template>
-  <div class="calendar" :style="{ fontSize: fontSize + 'px' }">
+  <div class="calendar" :style="{ fontSize: fontSize + 'px', fontFamily: fontFamily || 'inherit' }">
     <div class="weekday-row">
       <span
         v-for="(w, i) in weekdayLabels"
@@ -36,6 +36,7 @@ const props = defineProps<{
   showLunar: boolean
   showSolarTerm: boolean
   fontSize: number
+  fontFamily: string
 }>()
 
 defineEmits<{

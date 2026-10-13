@@ -127,6 +127,15 @@
                   </div>
                 </div>
                 <div class="setting-group">
+                  <label class="setting-label">编辑框字体</label>
+                  <div class="setting-control">
+                    <select v-model="localSettings.fontFamily" class="font-select">
+                      <option value="">系统默认</option>
+                      <option v-for="f in fontOptions" :key="f.value" :value="f.value">{{ f.label }}</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="setting-group">
                   <label class="setting-label">日历字体大小</label>
                   <div class="setting-control">
                     <input
@@ -137,6 +146,15 @@
                       class="range-input"
                     />
                     <span class="setting-value">{{ localSettings.calendarFontSize }}px</span>
+                  </div>
+                </div>
+                <div class="setting-group">
+                  <label class="setting-label">日历字体</label>
+                  <div class="setting-control">
+                    <select v-model="localSettings.calendarFontFamily" class="font-select">
+                      <option value="">系统默认</option>
+                      <option v-for="f in fontOptions" :key="f.value" :value="f.value">{{ f.label }}</option>
+                    </select>
                   </div>
                 </div>
               </template>
@@ -329,6 +347,19 @@ const tabs = [
 
 // 主题可选项直接复用 theme.ts 的定义，保证设置页与实际生效的主题始终一致
 const themes = THEMES
+
+// 字体可选项（跨平台常见字体）
+const fontOptions = [
+  { value: 'PingFang SC', label: '苹方 (macOS)' },
+  { value: 'Microsoft YaHei', label: '微软雅黑 (Windows)' },
+  { value: 'SimHei', label: '黑体' },
+  { value: 'SimSun', label: '宋体' },
+  { value: 'KaiTi', label: '楷体' },
+  { value: 'Arial', label: 'Arial' },
+  { value: 'Helvetica', label: 'Helvetica' },
+  { value: 'Times New Roman', label: 'Times New Roman' },
+  { value: 'Courier New', label: 'Courier New' },
+]
 
 const activeTab = ref('layout')
 
@@ -652,6 +683,28 @@ async function resetToDefault() {
   border-radius: 50%;
   background: var(--accent, #4A90D9);
   cursor: pointer;
+}
+
+.font-select {
+  flex: 1;
+  padding: 8px 12px;
+  border-radius: 6px;
+  background: var(--bg-primary, rgba(255, 255, 255, 0.04));
+  border: 1px solid var(--border, rgba(255, 255, 255, 0.1));
+  color: var(--text-primary, #fff);
+  font-size: 13px;
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.font-select:focus {
+  border-color: var(--accent, #4A90D9);
+}
+
+.font-select option {
+  background: var(--bg-secondary, #1e1e2e);
+  color: var(--text-primary, #fff);
 }
 
 .setting-value {

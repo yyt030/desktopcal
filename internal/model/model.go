@@ -45,45 +45,49 @@ type DayInfo struct {
 }
 
 type Settings struct {
-	Opacity         int    `json:"opacity"`
-	Width           int    `json:"width"`
-	Height          int    `json:"height"`
-	Theme           string `json:"theme"`
-	AlwaysTop       bool   `json:"alwaysTop"`
-	FontSize        int    `json:"fontSize"`
-	CalendarFontSize int   `json:"calendarFontSize"`
-	FirstDayOfWeek  int    `json:"firstDayOfWeek"`
-	ShowLunar       bool   `json:"showLunar"`
-	ShowSolarTerm   bool   `json:"showSolarTerm"`
-	LayoutMode      string `json:"layoutMode"`
-	Hotkey          string `json:"hotkey"`
-	CloseToTray     bool   `json:"closeToTray"`
-	AutoStart       bool   `json:"autoStart"`
-	ExportPath      string `json:"exportPath"`
-	EditorWidth     int    `json:"editorWidth"`
-	EditorHeight    int    `json:"editorHeight"`
+	Opacity            int    `json:"opacity"`
+	Width              int    `json:"width"`
+	Height             int    `json:"height"`
+	Theme              string `json:"theme"`
+	AlwaysTop          bool   `json:"alwaysTop"`
+	FontSize           int    `json:"fontSize"`
+	FontFamily         string `json:"fontFamily"`
+	CalendarFontSize   int    `json:"calendarFontSize"`
+	CalendarFontFamily string `json:"calendarFontFamily"`
+	FirstDayOfWeek     int    `json:"firstDayOfWeek"`
+	ShowLunar          bool   `json:"showLunar"`
+	ShowSolarTerm      bool   `json:"showSolarTerm"`
+	LayoutMode         string `json:"layoutMode"`
+	Hotkey             string `json:"hotkey"`
+	CloseToTray        bool   `json:"closeToTray"`
+	AutoStart          bool   `json:"autoStart"`
+	ExportPath         string `json:"exportPath"`
+	EditorWidth        int    `json:"editorWidth"`
+	EditorHeight       int    `json:"editorHeight"`
 }
 
 // DefaultSettings 返回设置项的默认值：既用于后端读取失败时兜底，
 // 也是前端默认值与设置项编解码（见 app_settings.go）的单一来源。
 func DefaultSettings() *Settings {
 	return &Settings{
-		Opacity:          100,
-		Width:            1100,
-		Height:           750,
-		Theme:            "dark",
-		AlwaysTop:        true,
-		FontSize:         13,
-		CalendarFontSize: 14,
-		FirstDayOfWeek:   1,
-		ShowLunar:        true,
-		ShowSolarTerm:    true,
-		LayoutMode:       LayoutLoose,
-		Hotkey:           DefaultHotkey(),
-		CloseToTray:      true,
-		ExportPath:       "",
-		EditorWidth:      420,
-		EditorHeight:     400,
+		Opacity:            100,
+		Width:              1100,
+		Height:             750,
+		Theme:              "dark",
+		AlwaysTop:          true,
+		FontSize:           13,
+		FontFamily:         "",
+		CalendarFontSize:   14,
+		CalendarFontFamily: "",
+		FirstDayOfWeek:     1,
+		ShowLunar:          true,
+		ShowSolarTerm:      true,
+		LayoutMode:         LayoutLoose,
+		Hotkey:             DefaultHotkey(),
+		CloseToTray:        true,
+		ExportPath:         "",
+		EditorWidth:        420,
+		EditorHeight:       400,
 	}
 }
 

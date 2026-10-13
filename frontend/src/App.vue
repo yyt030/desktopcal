@@ -17,6 +17,7 @@
         :show-lunar="currentSettings.showLunar"
         :show-solar-term="currentSettings.showSolarTerm"
         :font-size="currentSettings.calendarFontSize"
+        :font-family="currentSettings.calendarFontFamily"
         @select-day="onSelectDay"
         @quick-add="onDblClickDay"
       />
@@ -33,6 +34,8 @@
       :bg-color="selectedDay?.bgColor ?? ''"
       :editor-width="currentSettings.editorWidth"
       :editor-height="currentSettings.editorHeight"
+      :font-size="currentSettings.fontSize"
+      :font-family="currentSettings.fontFamily"
       @close="showPopup = false"
       @save-lines="onSaveLines"
       @set-bg="onSetBg"
@@ -102,7 +105,9 @@ const currentSettings = ref<Settings>({
   theme: 'dark',
   alwaysTop: true,
   fontSize: 13,
+  fontFamily: '',
   calendarFontSize: 14,
+  calendarFontFamily: '',
   firstDayOfWeek: 1,
   showLunar: true,
   showSolarTerm: true,
