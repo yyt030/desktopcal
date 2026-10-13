@@ -136,7 +136,7 @@
                   </div>
                 </div>
                 <div class="setting-group">
-                  <label class="setting-label">日历字体大小</label>
+                  <label class="setting-label">日历任务字体大小</label>
                   <div class="setting-control">
                     <input
                       type="range"
@@ -149,7 +149,7 @@
                   </div>
                 </div>
                 <div class="setting-group">
-                  <label class="setting-label">日历字体</label>
+                  <label class="setting-label">日历任务字体</label>
                   <div class="setting-control">
                     <select v-model="localSettings.calendarFontFamily" class="font-select">
                       <option value="">系统默认</option>
