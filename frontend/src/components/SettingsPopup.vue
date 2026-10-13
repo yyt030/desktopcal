@@ -649,24 +649,26 @@ async function resetToDefault() {
 }
 
 .toggle-btn {
-  padding: 6px 16px;
-  border-radius: 6px;
+  padding: 8px 14px;
+  border-radius: 8px;
   font-size: 12px;
-  background: var(--bg-primary, rgba(255, 255, 255, 0.06));
+  background: var(--bg-primary, rgba(255, 255, 255, 0.04));
   border: 1px solid var(--border, transparent);
-  color: var(--text-secondary, rgba(255, 255, 255, 0.6));
+  color: var(--text-secondary, rgba(255, 255, 255, 0.7));
+  cursor: pointer;
   transition: all 0.15s;
 }
 
 .toggle-btn.active {
-  background: var(--accent, #4A90D9);
   border-color: var(--accent, #4A90D9);
-  color: #fff;
+  background: var(--bg-hover, rgba(255, 255, 255, 0.08));
+  color: var(--text-primary, #fff);
   font-weight: 600;
 }
 
 .toggle-btn:hover {
-  background: var(--bg-hover, rgba(255, 255, 255, 0.1));
+  background: var(--bg-hover, rgba(255, 255, 255, 0.08));
+  color: var(--text-primary, #fff);
 }
 
 .about-section {
