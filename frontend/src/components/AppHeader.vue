@@ -7,19 +7,12 @@
     </div>
     <div class="header-right">
       <button class="btn btn-today" @click="$emit('today')">今天</button>
-      <div class="data-group">
-        <button class="btn btn-data" @click="$emit('export')" title="导出数据">
-          <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor">
-            <path d="M7 1a.5.5 0 0 1 .5.5v7.793l2.146-2.147a.5.5 0 0 1 .708.708l-3 3a.5.5 0 0 1-.708 0l-3-3a.5.5 0 1 1 .708-.708L6.5 9.293V1.5A.5.5 0 0 1 7 1zM2 11.5a.5.5 0 0 1 .5.5v1h9v-1a.5.5 0 0 1 1 0v1.5a.5.5 0 0 1-.5.5h-10a.5.5 0 0 1-.5-.5V12a.5.5 0 0 1 .5-.5z"/>
-          </svg>
-        </button>
-        <button class="btn btn-data" @click="$emit('import')" title="导入数据">
-          <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor">
-            <path d="M7 10a.5.5 0 0 1-.5-.5V1.707L4.354 3.854a.5.5 0 1 1-.708-.708l3-3a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1-.708.708L7.5 1.707V9.5a.5.5 0 0 1-.5.5zM2 11.5a.5.5 0 0 1 .5.5v1h9v-1a.5.5 0 0 1 1 0v1.5a.5.5 0 0 1-.5.5h-10a.5.5 0 0 1-.5-.5V12a.5.5 0 0 1 .5-.5z"/>
-          </svg>
-        </button>
-      </div>
-      <button class="btn btn-settings" @click="$emit('settings')" title="设置">
+      <button class="btn btn-icon" @click="$emit('import')" title="导入数据">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor">
+          <path d="M7 10a.5.5 0 0 1-.5-.5V1.707L4.354 3.854a.5.5 0 1 1-.708-.708l3-3a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1-.708.708L7.5 1.707V9.5a.5.5 0 0 1-.5.5zM2 11.5a.5.5 0 0 1 .5.5v1h9v-1a.5.5 0 0 1 1 0v1.5a.5.5 0 0 1-.5.5h-10a.5.5 0 0 1-.5-.5V12a.5.5 0 0 1 .5-.5z"/>
+        </svg>
+      </button>
+      <button class="btn btn-icon" @click="$emit('settings')" title="设置">
         <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
           <path d="M8 4.754a3.246 3.246 0 1 0 0 6.492 3.246 3.246 0 0 0 0-6.492zM5.754 8a2.246 2.246 0 1 1 4.492 0 2.246 2.246 0 0 1-4.492 0z"/>
           <path d="M9.796 1.343c-.527-1.79-3.065-1.79-3.592 0l-.094.319a.873.873 0 0 1-1.255.52l-.292-.16c-1.64-.892-3.433.902-2.54 2.541l.159.292a.873.873 0 0 1-.52 1.255l-.319.094c-1.79.527-1.79 3.065 0 3.592l.319.094a.873.873 0 0 1 .52 1.255l-.16.292c-.892 1.64.901 3.434 2.541 2.54l.292-.159a.873.873 0 0 1 1.255.52l.094.319c.527 1.79 3.065 1.79 3.592 0l.094-.319a.873.873 0 0 1 1.255-.52l.292.16c1.64.893 3.434-.902 2.54-2.541l-.159-.292a.873.873 0 0 1 .52-1.255l.319-.094c1.79-.527 1.79-3.065 0-3.592l-.319-.094a.873.873 0 0 1-.52-1.255l.16-.292c.893-1.64-.902-3.433-2.541-2.54l-.292.159a.873.873 0 0 1-1.255-.52l-.094-.319zm-2.633.283c.246-.835 1.428-.835 1.674 0l.094.319a1.873 1.873 0 0 0 2.693 1.115l.291-.16c.764-.415 1.6.42 1.184 1.185l-.159.292a1.873 1.873 0 0 0 1.116 2.692l.318.094c.835.246.835 1.428 0 1.674l-.319.094a1.873 1.873 0 0 0-1.115 2.693l.16.291c.415.764-.42 1.6-1.185 1.184l-.291-.159a1.873 1.873 0 0 0-2.693 1.116l-.094.318c-.246.835-1.428.835-1.674 0l-.094-.319a1.873 1.873 0 0 0-2.692-1.115l-.292.16c-.764.415-1.6-.42-1.184-1.185l.159-.291A1.873 1.873 0 0 0 1.945 8.93l-.319-.094c-.835-.246-.835-1.428 0-1.674l.319-.094A1.873 1.873 0 0 0 3.06 4.377l-.16-.292c-.415-.764.42-1.6 1.185-1.184l.292.159a1.873 1.873 0 0 0 2.692-1.115l.094-.319z"/>
@@ -70,7 +63,6 @@ defineEmits<{
   prev: []
   next: []
   today: []
-  export: []
   import: []
   settings: []
 }>()
@@ -154,38 +146,17 @@ function onClose() {
   color: var(--accent);
 }
 
-.data-group {
-  display: flex;
-  gap: 2px;
-  background: var(--bg-secondary);
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--border);
-  overflow: hidden;
-}
-
-.btn-data {
+.btn-icon {
   padding: 6px 8px;
   display: flex;
   align-items: center;
   justify-content: center;
-}
-
-.btn-data:hover {
-  background: var(--bg-hover);
-  color: var(--accent);
-}
-
-.btn-settings {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 6px 8px;
   background: var(--bg-secondary);
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
 }
 
-.btn-settings:hover {
+.btn-icon:hover {
   background: var(--bg-hover);
   border-color: var(--accent);
   color: var(--accent);

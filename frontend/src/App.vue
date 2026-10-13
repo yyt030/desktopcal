@@ -6,7 +6,6 @@
       @prev="prevMonth"
       @next="nextMonth"
       @today="goToday"
-      @export="onExport"
       @import="onImport"
       @settings="showSettings = true"
     />
@@ -59,7 +58,7 @@ import AppHeader from './components/AppHeader.vue'
 import CalendarGrid from './components/CalendarGrid.vue'
 import EventPopup from './components/EventPopup.vue'
 import SettingsPopup from './components/SettingsPopup.vue'
-import { getMonthDays, createEvent, updateEvent, deleteEvent, batchSaveEvents, exportData, importData, getSettings, saveSettings, saveEditorSize, setDayBackground, setWindowSize, setWindowAlwaysOnTop } from './api'
+import { getMonthDays, createEvent, updateEvent, deleteEvent, batchSaveEvents, importData, getSettings, saveSettings, saveEditorSize, setDayBackground, setWindowSize, setWindowAlwaysOnTop } from './api'
 import { formatDate, isSameMonth } from './utils/date'
 import { applyAppearance } from './theme'
 import type { DayInfo, Settings } from './types'
@@ -233,15 +232,6 @@ function onEditorResize(width: number, height: number) {
       console.error('保存编辑器大小失败:', err)
     }
   }, 500)
-}
-
-async function onExport() {
-  try {
-    await exportData(currentYear.value, currentMonth.value)
-    showToast('数据已导出')
-  } catch (err) {
-    showToast('导出失败：' + errMsg(err))
-  }
 }
 
 async function onImport() {
