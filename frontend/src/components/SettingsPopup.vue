@@ -426,7 +426,6 @@ function save() {
 }
 
 async function resetToDefault() {
-  if (!confirm('确定要重置所有设置为默认值吗？')) return
   try {
     const defaults = await resetSettings()
     localSettings.value = { ...defaults }
