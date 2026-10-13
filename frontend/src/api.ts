@@ -65,6 +65,10 @@ export async function saveSettings(settings: Settings): Promise<void> {
   return App.SaveSettings(settings)
 }
 
+export async function resetSettings(): Promise<Settings> {
+  return (await App.ResetSettings()) as Settings
+}
+
 export async function saveEditorSize(width: number, height: number): Promise<void> {
   return App.SaveEditorSize(width, height)
 }

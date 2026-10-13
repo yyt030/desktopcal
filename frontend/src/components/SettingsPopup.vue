@@ -277,6 +277,7 @@
           <div class="popup-footer">
             <span class="footer-tab-name">{{ currentTabLabel }}</span>
             <div v-if="activeTab !== 'about'" class="footer-actions">
+              <button class="btn-form btn-reset-default" @click="resetToDefault">重置默认</button>
               <button class="btn-form btn-cancel" @click="emit('close')">取消</button>
               <button class="btn-form btn-save" @click="save">保存</button>
             </div>
@@ -290,7 +291,7 @@
 <script setup lang="ts">
 import { computed, nextTick, ref, watch } from 'vue'
 import { THEMES } from '../theme'
-import { getVersion, pickDirectory, exportData, exportDataRange, getDatabasePath, getPlatform } from '../api'
+import { getVersion, pickDirectory, exportData, exportDataRange, getDatabasePath, getPlatform, resetSettings } from '../api'
 import type { Settings } from '../types'
 
 const props = defineProps<{
@@ -422,6 +423,18 @@ watch(() => props.visible, (val) => {
 function save() {
   emit('save', { ...localSettings.value })
   emit('close')
+}
+
+async function resetToDefault() {
+  if (!confirm('确定要重置所有设置为默认值吗？')) return
+  try {
+    const defaults = await resetSettings()
+    localSettings.value = { ...defaults }
+    emit('save', { ...defaults })
+    emit('toast', '已重置为默认设置')
+  } catch (err) {
+    emit('toast', '重置失败：' + (err instanceof Error ? err.message : String(err)))
+  }
 }
 </script>
 
@@ -721,6 +734,17 @@ function save() {
   background: var(--accent, #4A90D9);
   color: #fff;
   font-weight: 600;
+}
+
+.btn-reset-default {
+  color: var(--text-secondary, rgba(255, 255, 255, 0.6));
+  background: transparent;
+  border: 1px solid var(--border, rgba(255, 255, 255, 0.1));
+}
+
+.btn-reset-default:hover {
+  color: var(--text-primary, #fff);
+  border-color: var(--border, rgba(255, 255, 255, 0.2));
 }
 
 .popup-enter-active, .popup-leave-active {

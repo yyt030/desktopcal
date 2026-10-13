@@ -55,3 +55,9 @@ func (d *DB) SetSettings(settings map[string]string) error {
 	}
 	return tx.Commit()
 }
+
+// ClearSettings 清空全部设置项，用于恢复默认配置。
+func (d *DB) ClearSettings() error {
+	_, err := d.conn.Exec(`DELETE FROM settings`)
+	return err
+}

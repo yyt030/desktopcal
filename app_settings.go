@@ -154,3 +154,22 @@ func (a *App) SaveEditorSize(width, height int) error {
 	s.EditorHeight = height
 	return a.SaveSettings(s)
 }
+
+// ResetSettings 清空全部持久化设置并返回默认值，同时触发快捷键/自启动等副作用。
+func (a *App) ResetSettings() (*model.Settings, error) {
+	old := a.GetSettings()
+	if err := a.db.ClearSettings(); err != nil {
+		return nil, err
+	}
+	def := model.DefaultSettings()
+	if old.Hotkey != def.Hotkey {
+		unregisterGlobalHotkey()
+		if hk := ParseHotkey(def.Hotkey); hk != nil {
+			registerGlobalHotkey(hk)
+		}
+	}
+	if old.AutoStart != def.AutoStart {
+		setAutoStart(def.AutoStart)
+	}
+	return def, nil
+}

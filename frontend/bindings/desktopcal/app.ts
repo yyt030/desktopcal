@@ -140,6 +140,15 @@ export function ResetHotkey(): $CancellablePromise<void> {
     return $Call.ByID(3841593826);
 }
 
+/**
+ * ResetSettings 清空全部持久化设置并返回默认值，同时触发快捷键/自启动等副作用。
+ */
+export function ResetSettings(): $CancellablePromise<model$0.Settings | null> {
+    return $Call.ByID(3018254949).then(($result: any) => {
+        return $$createType7($result);
+    });
+}
+
 export function SaveEditorSize(width: number, height: number): $CancellablePromise<void> {
     return $Call.ByID(1390215128, width, height);
 }
