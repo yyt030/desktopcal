@@ -685,8 +685,9 @@ async function resetToDefault() {
 
 .font-control {
   display: flex;
-  flex-direction: column;
-  gap: 8px;
+  flex-direction: row;
+  gap: 12px;
+  align-items: center;
 }
 
 .font-size-control {
