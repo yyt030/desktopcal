@@ -114,47 +114,47 @@
                   </div>
                 </div>
                 <div class="setting-group">
-                  <label class="setting-label">编辑框字体大小</label>
-                  <div class="setting-control">
-                    <input
-                      type="range"
-                      min="10"
-                      max="24"
-                      v-model.number="localSettings.fontSize"
-                      class="range-input"
-                    />
-                    <span class="setting-value">{{ localSettings.fontSize }}px</span>
-                  </div>
-                </div>
-                <div class="setting-group">
                   <label class="setting-label">编辑框字体</label>
-                  <div class="setting-control">
+                  <div class="setting-control font-control">
+                    <div class="font-size-control">
+                      <input
+                        type="range"
+                        min="10"
+                        max="24"
+                        v-model.number="localSettings.fontSize"
+                        class="range-input"
+                      />
+                      <span class="setting-value">{{ localSettings.fontSize }}px</span>
+                    </div>
                     <select v-model="localSettings.fontFamily" class="font-select">
                       <option value="">系统默认</option>
                       <option v-for="f in fontOptions" :key="f.value" :value="f.value">{{ f.label }}</option>
                     </select>
                   </div>
-                </div>
-                <div class="setting-group">
-                  <label class="setting-label">日历任务字体大小</label>
-                  <div class="setting-control">
-                    <input
-                      type="range"
-                      min="10"
-                      max="24"
-                      v-model.number="localSettings.calendarFontSize"
-                      class="range-input"
-                    />
-                    <span class="setting-value">{{ localSettings.calendarFontSize }}px</span>
+                  <div class="font-preview" :style="{ fontSize: localSettings.fontSize + 'px', fontFamily: localSettings.fontFamily || 'inherit' }">
+                    编辑框字体预览 AaBbCc 123
                   </div>
                 </div>
                 <div class="setting-group">
                   <label class="setting-label">日历任务字体</label>
-                  <div class="setting-control">
+                  <div class="setting-control font-control">
+                    <div class="font-size-control">
+                      <input
+                        type="range"
+                        min="10"
+                        max="24"
+                        v-model.number="localSettings.calendarFontSize"
+                        class="range-input"
+                      />
+                      <span class="setting-value">{{ localSettings.calendarFontSize }}px</span>
+                    </div>
                     <select v-model="localSettings.calendarFontFamily" class="font-select">
                       <option value="">系统默认</option>
                       <option v-for="f in fontOptions" :key="f.value" :value="f.value">{{ f.label }}</option>
                     </select>
+                  </div>
+                  <div class="font-preview" :style="{ fontSize: localSettings.calendarFontSize + 'px', fontFamily: localSettings.calendarFontFamily || 'inherit' }">
+                    日历任务字体预览 AaBbCc 123
                   </div>
                 </div>
               </template>
@@ -681,6 +681,28 @@ async function resetToDefault() {
   border-radius: 50%;
   background: var(--accent, #4A90D9);
   cursor: pointer;
+}
+
+.font-control {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.font-size-control {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+}
+
+.font-preview {
+  margin-top: 8px;
+  padding: 8px 12px;
+  background: var(--bg-primary, rgba(255, 255, 255, 0.04));
+  border-radius: 6px;
+  color: var(--text-primary, #fff);
+  border: 1px solid var(--border, rgba(255, 255, 255, 0.1));
 }
 
 .font-select {
