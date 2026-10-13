@@ -126,6 +126,19 @@
                     <span class="setting-value">{{ localSettings.fontSize }}px</span>
                   </div>
                 </div>
+                <div class="setting-group">
+                  <label class="setting-label">日历字体大小</label>
+                  <div class="setting-control">
+                    <input
+                      type="range"
+                      min="10"
+                      max="24"
+                      v-model.number="localSettings.calendarFontSize"
+                      class="range-input"
+                    />
+                    <span class="setting-value">{{ localSettings.calendarFontSize }}px</span>
+                  </div>
+                </div>
               </template>
 
               <template v-else-if="activeTab === 'window'">

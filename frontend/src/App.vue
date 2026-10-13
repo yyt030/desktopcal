@@ -16,6 +16,7 @@
         :first-day-of-week="currentSettings.firstDayOfWeek"
         :show-lunar="currentSettings.showLunar"
         :show-solar-term="currentSettings.showSolarTerm"
+        :font-size="currentSettings.calendarFontSize"
         @select-day="onSelectDay"
         @quick-add="onDblClickDay"
       />
@@ -101,6 +102,7 @@ const currentSettings = ref<Settings>({
   theme: 'dark',
   alwaysTop: true,
   fontSize: 13,
+  calendarFontSize: 14,
   firstDayOfWeek: 1,
   showLunar: true,
   showSolarTerm: true,

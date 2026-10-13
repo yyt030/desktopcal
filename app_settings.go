@@ -84,6 +84,7 @@ var settingsSpec = []settingCodec{
 	intSetting("width", func(s *model.Settings) *int { return &s.Width }),
 	intSetting("height", func(s *model.Settings) *int { return &s.Height }),
 	intSetting("font_size", func(s *model.Settings) *int { return &s.FontSize }),
+	intSetting("calendar_font_size", func(s *model.Settings) *int { return &s.CalendarFontSize }),
 	intSetting("first_day_of_week", func(s *model.Settings) *int { return &s.FirstDayOfWeek }),
 	stringSetting("theme", func(s *model.Settings) *string { return &s.Theme }),
 	stringSetting("layout_mode", func(s *model.Settings) *string { return &s.LayoutMode }),
