@@ -37,6 +37,7 @@
             <div
               ref="editorRef"
               class="events-editor"
+              :class="{ 'no-line-numbers': lineCount <= 1 }"
               contenteditable="true"
               spellcheck="false"
               :style="editorFontStyle"
@@ -784,6 +785,10 @@ watch(text, () => {
   min-height: 120px;
   overflow-y: auto;
   cursor: text;
+}
+
+.events-editor.no-line-numbers {
+  padding-left: 12px;
 }
 
 .editor-line {
