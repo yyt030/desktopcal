@@ -79,7 +79,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, nextTick, type ObjectDirective } from 'vue'
+import { ref, computed, watch, nextTick, onUnmounted, type ObjectDirective } from 'vue'
 import type { Event, LunarDay } from '../types'
 import { parseLocalDate } from '../utils/date'
 
@@ -448,11 +448,6 @@ function normalizeEditorDOM(editor: HTMLElement) {
 }
 
 function handleEditorKeydown(e: KeyboardEvent) {
-  if (e.key === 'Escape') {
-    e.preventDefault()
-    saveAndClose()
-    return
-  }
   if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
     e.preventDefault()
     saveAndClose()
@@ -615,6 +610,25 @@ watch(() => props.visible, (val) => {
       focusEnd()
     })
   }
+})
+
+function onGlobalKeydown(e: KeyboardEvent) {
+  if (e.key === 'Escape') {
+    e.preventDefault()
+    handleClose()
+  }
+}
+
+watch(() => props.visible, (val) => {
+  if (val) {
+    document.addEventListener('keydown', onGlobalKeydown)
+  } else {
+    document.removeEventListener('keydown', onGlobalKeydown)
+  }
+})
+
+onUnmounted(() => {
+  document.removeEventListener('keydown', onGlobalKeydown)
 })
 
 watch(() => props.events, (newEvents) => {
