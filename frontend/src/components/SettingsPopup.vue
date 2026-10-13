@@ -350,13 +350,11 @@ const themes = THEMES
 
 // 字体可选项（跨平台常见字体）
 const fontOptions = [
-  { value: 'PingFang SC', label: '苹方 (macOS)' },
   { value: 'Microsoft YaHei', label: '微软雅黑 (Windows)' },
   { value: 'SimHei', label: '黑体' },
   { value: 'SimSun', label: '宋体' },
   { value: 'KaiTi', label: '楷体' },
   { value: 'Arial', label: 'Arial' },
-  { value: 'Helvetica', label: 'Helvetica' },
   { value: 'Times New Roman', label: 'Times New Roman' },
   { value: 'Courier New', label: 'Courier New' },
 ]
