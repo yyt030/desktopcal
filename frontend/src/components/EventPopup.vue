@@ -22,7 +22,7 @@
               </div>
             </div>
             <div class="popup-header-right">
-              <button class="btn-close" @click="handleClose" title="关闭">
+              <button class="btn-close" @mousedown.prevent="handleClose" title="关闭">
                 <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor">
                   <path d="M3.7 3.7a.5.5 0 0 1 .7 0L7 6.3l2.6-2.6a.5.5 0 0 1 .7.7L7.7 7l2.6 2.6a.5.5 0 0 1-.7.7L7 7.7l-2.6 2.6a.5.5 0 0 1-.7-.7L6.3 7 3.7 4.4a.5.5 0 0 1 0-.7z"/>
                 </svg>
@@ -570,6 +570,7 @@ function handleContextMenu(e: MouseEvent) {
     newLines[idx] = '✓ ' + line
   }
   text.value = newLines.join('\n')
+  dirty.value = true
   lineSyncVersion.value++
 }
 
